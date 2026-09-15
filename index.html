@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice Tracker &amp; Chase Manager</title>
+<style>
+:root{
+  --ink:#1B2A36; --slate:#5A6B78; --paper:#F7F8F9; --card:#FFFFFF;
+  --rule:#E2E6E9; --accent:#0F7B6C; --accent-soft:#E7F2F0;
+  --alert:#C0392B; --alert-soft:#FBEAE8; --amber:#B9770E; --amber-soft:#FDF3E3;
+  --blue:#2471A3; --blue-soft:#EAF2F8; --grey:#8A959E; --grey-soft:#F0F2F4;
+  --radius:10px; --shadow:0 1px 2px rgba(27,42,54,.06),0 4px 12px rgba(27,42,54,.05);
+}
+.demo-banner{position:sticky;top:0;z-index:9999;background:#B9770E;color:#fff;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;text-align:center;padding:9px 14px}
+.demo-banner a{color:#fff;text-decoration:underline}
+.demo-banner .x{position:absolute;right:10px;top:6px;background:none;border:none;color:#fff;font:inherit;cursor:pointer;opacity:.85;padding:4px 8px}
+.demo-banner .x:hover{opacity:1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+
+/* ---------- shell ---------- */
+.app{display:flex;min-height:100vh}
+.side{width:224px;flex:0 0 224px;background:var(--ink);color:#fff;padding:22px 0;
+  position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:14px}
+.brand b{display:block;font-size:15px;letter-spacing:.2px}
+.brand span{display:block;font-size:11.5px;color:#9BB0BD;margin-top:3px;letter-spacing:.4px;text-transform:uppercase}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;
+  color:#C6D3DB;padding:10px 20px;text-align:left;cursor:pointer;font-size:14px;border-left:3px solid transparent}
+.nav button:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav button.on{background:rgba(255,255,255,.09);color:#fff;border-left-color:var(--accent);font-weight:600}
+.nav .ico{width:18px;text-align:center;opacity:.85}
+.nav .tag{margin-left:auto;background:var(--alert);color:#fff;font-size:11px;font-weight:700;
+  padding:1px 7px;border-radius:9px}
+.main{flex:1;min-width:0;padding:26px 30px 60px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.head h1{font-size:23px;font-weight:650;letter-spacing:-.2px}
+.head p{color:var(--slate);font-size:13.5px;margin-top:3px}
+
+/* ---------- controls ---------- */
+.btn{background:var(--accent);color:#fff;border:0;padding:9px 16px;border-radius:8px;
+  cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--rule)}
+.btn.ghost:hover{background:var(--paper);filter:none}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.danger{background:#fff;color:var(--alert);border:1px solid #E9C6C1}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+
+/* ---------- cards ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:13px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);
+  padding:15px 16px;box-shadow:var(--shadow)}
+.kpi .lab{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--slate);font-weight:600}
+.kpi .val{font-size:25px;font-weight:660;margin-top:7px;letter-spacing:-.5px}
+.kpi .sub{font-size:12.5px;color:var(--slate);margin-top:3px}
+.kpi.alert .val{color:var(--alert)} .kpi.amber .val{color:var(--amber)}
+.kpi.good .val{color:var(--accent)}
+
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.panel>h2{font-size:14.5px;font-weight:650;padding:14px 18px;border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;gap:12px}
+.panel>h2 small{font-weight:500;color:var(--slate);font-size:12.5px}
+.pad{padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:var(--paper);text-align:left;padding:10px 12px;font-size:11.5px;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--slate);font-weight:650;
+  border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--rule);vertical-align:middle}
+tbody tr:hover{background:#FAFBFC}
+tbody tr:last-child td{border-bottom:0}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mut{color:var(--slate)}
+.empty{padding:38px 18px;text-align:center;color:var(--slate);font-size:14px}
+
+/* ---------- pills ---------- */
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:650;white-space:nowrap}
+.p-paid{background:var(--accent-soft);color:var(--accent)}
+.p-over{background:var(--alert-soft);color:var(--alert)}
+.p-soon{background:var(--amber-soft);color:var(--amber)}
+.p-part{background:var(--blue-soft);color:var(--blue)}
+.p-sent{background:var(--grey-soft);color:var(--slate)}
+.p-draft{background:var(--grey-soft);color:var(--grey)}
+
+/* ---------- forms ---------- */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:650;color:var(--slate);margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.4px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--rule);
+  border-radius:8px;background:#fff}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent-soft);
+  border-color:var(--accent)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:620px){.f2{grid-template-columns:1fr}}
+
+/* ---------- modal ---------- */
+.veil{position:fixed;inset:0;background:rgba(27,42,54,.45);display:none;
+  align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow-y:auto}
+.veil.on{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:560px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{font-size:16.5px;font-weight:650;padding:17px 20px;border-bottom:1px solid var(--rule)}
+.modal .body{padding:18px 20px}
+.modal .foot{padding:14px 20px;border-top:1px solid var(--rule);display:flex;gap:9px;justify-content:flex-end}
+
+/* ---------- charts / bars ---------- */
+.bars{display:flex;flex-direction:column;gap:11px}
+.bar-row{display:grid;grid-template-columns:118px 1fr 96px;gap:11px;align-items:center;font-size:13px}
+.track{background:var(--grey-soft);border-radius:5px;height:9px;overflow:hidden}
+.fill{height:100%;border-radius:5px;background:var(--accent);transition:width .3s}
+.fill.a{background:var(--alert)} .fill.b{background:var(--amber)} .fill.c{background:var(--blue)}
+
+.mbars{display:flex;align-items:flex-end;gap:9px;height:150px;padding-top:8px}
+.mbar{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.mbar .stack{width:100%;display:flex;gap:3px;align-items:flex-end;height:118px}
+.mbar .s{flex:1;border-radius:3px 3px 0 0;min-height:2px}
+.mbar .s1{background:var(--blue)} .mbar .s2{background:var(--accent)}
+.mbar .lb{font-size:10.5px;color:var(--slate);white-space:nowrap}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--slate);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+
+/* ---------- misc ---------- */
+.note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 15px;
+  border-radius:6px;font-size:13.5px;margin-bottom:16px}
+.note.warn{background:var(--amber-soft);border-left-color:var(--amber)}
+.steps{counter-reset:s;list-style:none}
+.steps li{counter-increment:s;position:relative;padding:0 0 16px 42px;font-size:14px}
+.steps li:before{content:counter(s);position:absolute;left:0;top:-1px;width:27px;height:27px;
+  background:var(--accent);color:#fff;border-radius:50%;display:grid;place-items:center;
+  font-size:13px;font-weight:700}
+.steps li b{display:block;margin-bottom:2px}
+.steps li span{color:var(--slate);font-size:13.5px}
+.script{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.script h4{font-size:13.5px;font-weight:650;margin-bottom:3px;display:flex;justify-content:space-between;
+  align-items:center;gap:10px}
+.script .when{font-size:11.5px;color:var(--slate);font-weight:500}
+.script pre{white-space:pre-wrap;font:13.5px/1.6 inherit;color:var(--ink);margin-top:9px}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--slate);
+  font-weight:650;margin:22px 0 10px}
+.sec:first-child{margin-top:0}
+.hint{font-size:12.5px;color:var(--slate);margin-top:5px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+
+/* ---------- responsive ---------- */
+@media(max-width:820px){
+  .app{flex-direction:column}
+  .side{width:100%;flex:none;height:auto;position:static;padding:16px 0}
+  .brand{padding:0 16px 14px}
+  .nav{display:flex;flex-wrap:wrap;gap:2px;padding:0 10px}
+  .nav button{width:auto;padding:8px 12px;border-left:0;border-bottom:3px solid transparent;border-radius:6px}
+  .nav button.on{border-left:0;border-bottom-color:var(--accent)}
+  .main{padding:18px 14px 50px}
+  .head h1{font-size:20px}
+  .kpi .val{font-size:22px}
+  .bar-row{grid-template-columns:82px 1fr 78px;font-size:12.5px}
+}
+
+/* ---------- print ---------- */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;font-size:11.5pt}
+  .side,.veil,.head .row,.btn,.nav{display:none !important}
+  .app{display:block}
+  .main{padding:0}
+  .panel{border:1px solid #ccc;box-shadow:none;break-inside:avoid;page-break-inside:avoid;margin-bottom:14px}
+  .panel>h2{background:#f2f2f2}
+  .kpi{border:1px solid #ccc;box-shadow:none;break-inside:avoid}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .grid2{grid-template-columns:1fr 1fr}
+  table{font-size:10pt}
+  tbody tr{break-inside:avoid;page-break-inside:avoid}
+  .tw{overflow:visible}
+  .head h1{font-size:18pt}
+  .note{border:1px solid #ccc}
+  a[href]:after{content:""}
+}
+</style>
+</head>
+<body>
+<div class="demo-banner" id="demoBanner">DEMO — example data, log up to 50 invoices and see whether it thinks the way you do. Nothing is saved permanently and it can reset any time. <a href="https://www.etsy.com/shop/LedgerLoopStudio" target="_blank" rel="noopener">Buy the full version</a> for your own unlimited, permanent copy.<button class="x" onclick="document.getElementById('demoBanner').style.display='none'" aria-label="Dismiss">✕</button></div>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><b id="bizName">Your Business</b><span>Invoice Tracker</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div class="veil" id="veil"><div class="modal" id="modal"></div></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+var KEY = "invoiceTrackerPro_v1";
+var DB = null;
+/* ---- demo-only limit: this block exists only in the public try-it demo, never in the sold product ---- */
+var DEMO_MODE = true, DEMO_INV_LIMIT = 50;
+function demoLimitReached(){
+  if(!DEMO_MODE) return false;
+  if(!DB || !DB.invoices || DB.invoices.length < DEMO_INV_LIMIT) return false;
+  alert("You've reached the "+DEMO_INV_LIMIT+"-invoice demo limit.\n\nThis is just a preview — buy the full version for unlimited invoices, all features unlocked, and your own permanent copy.");
+  return true;
+}
+
+function today(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
+function iso(d){
+  var y=d.getFullYear(), m=("0"+(d.getMonth()+1)).slice(-2), a=("0"+d.getDate()).slice(-2);
+  return y+"-"+m+"-"+a;
+}
+function parseD(s){
+  if(!s) return null;
+  var p = String(s).split("-");
+  if(p.length!==3) return null;
+  var d = new Date(+p[0], +p[1]-1, +p[2]);
+  if(isNaN(d.getTime())) return null;
+  d.setHours(0,0,0,0); return d;
+}
+function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+function daysBetween(a,b){ return Math.round((b.getTime()-a.getTime())/86400000); }
+
+function seed(){
+  var t = today();
+  var s = function(n){ return iso(addDays(t,n)); };
+  return {
+    settings:{ business:"Meridian Studio", currency:"$", terms:30, dueSoon:7, prefix:"INV-" },
+    sample:true,
+    clients:[
+      {id:1,name:"Northgate Media",email:"accounts@northgate.example",phone:"+1 555 0142",contact:"Dana Whitfield"},
+      {id:2,name:"Bellweather Co.",email:"ap@bellweather.example",phone:"+1 555 0178",contact:"Marcus Reid"},
+      {id:3,name:"Kestrel Architects",email:"finance@kestrel.example",phone:"+1 555 0119",contact:"Priya Raman"},
+      {id:4,name:"Oakline Ventures",email:"billing@oakline.example",phone:"+1 555 0163",contact:"Tom Alvarez"},
+      {id:5,name:"Harbour & Fine",email:"pay@harbourfine.example",phone:"+1 555 0190",contact:"Elise Cho"}
+    ],
+    invoices:[
+      {id:17,num:"INV-1000",client:4,service:"Discovery workshop",issue:s(-160),due:s(-130),amount:1450,tax:0},
+      {id:1,num:"INV-1001",client:1,service:"Brand identity",issue:s(-118),due:s(-88),amount:3200,tax:0},
+      {id:2,num:"INV-1002",client:2,service:"Website design",issue:s(-96),due:s(-66),amount:4800,tax:0},
+      {id:3,num:"INV-1003",client:3,service:"Consulting retainer",issue:s(-84),due:s(-54),amount:2400,tax:120},
+      {id:4,num:"INV-1004",client:1,service:"Campaign assets",issue:s(-71),due:s(-41),amount:1750,tax:0},
+      {id:5,num:"INV-1005",client:4,service:"Pitch deck",issue:s(-63),due:s(-33),amount:1200,tax:60},
+      {id:6,num:"INV-1006",client:2,service:"Landing pages",issue:s(-52),due:s(-22),amount:2650,tax:0},
+      {id:7,num:"INV-1007",client:5,service:"Editorial design",issue:s(-44),due:s(-14),amount:1980,tax:99},
+      {id:8,num:"INV-1008",client:3,service:"Consulting retainer",issue:s(-38),due:s(-8),amount:2400,tax:120},
+      {id:9,num:"INV-1009",client:1,service:"Social templates",issue:s(-30),due:s(0),amount:890,tax:0},
+      {id:10,num:"INV-1010",client:4,service:"Brand refresh",issue:s(-24),due:s(6),amount:3600,tax:180},
+      {id:11,num:"INV-1011",client:5,service:"Packaging design",issue:s(-17),due:s(13),amount:2250,tax:0},
+      {id:12,num:"INV-1012",client:2,service:"Retainer — monthly",issue:s(-10),due:s(20),amount:2000,tax:0},
+      {id:13,num:"INV-1013",client:3,service:"Workshop facilitation",issue:s(-6),due:s(24),amount:1500,tax:75},
+      {id:14,num:"INV-1014",client:1,service:"Illustration set",issue:s(-3),due:s(27),amount:1400,tax:0},
+      {id:15,num:"INV-1015",client:4,service:"Presentation system",issue:s(-1),due:s(45),amount:2800,tax:140},
+      {id:16,num:"INV-1016",client:5,service:"Annual brand support",issue:s(0),due:s(75),amount:5400,tax:270}
+    ],
+    payments:[
+      {id:1,inv:"INV-1001",date:s(-80),amount:3200,method:"Bank transfer",note:"Paid late"},
+      {id:2,inv:"INV-1002",date:s(-60),amount:2400,method:"Bank transfer",note:"50% instalment"},
+      {id:3,inv:"INV-1003",date:s(-48),amount:2520,method:"Card",note:""},
+      {id:4,inv:"INV-1005",date:s(-30),amount:1260,method:"PayPal",note:""},
+      {id:5,inv:"INV-1006",date:s(-19),amount:1000,method:"Bank transfer",note:"Part payment"},
+      {id:6,inv:"INV-1007",date:s(-12),amount:2079,method:"Card",note:""},
+      {id:7,inv:"INV-1009",date:s(-2),amount:890,method:"Bank transfer",note:"Paid early"},
+      {id:8,inv:"INV-1011",date:s(-4),amount:1000,method:"Card",note:"Deposit"},
+      {id:9,inv:"INV-1013",date:s(-1),amount:1575,method:"Bank transfer",note:""}
+    ],
+    nextId:{client:6,invoice:18,payment:10}
+  };
+}
+
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw){ var d = JSON.parse(raw); if(d && d.settings && d.invoices) return d; }
+  }catch(e){}
+  return seed();
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(DB)); }
+  catch(e){ /* private mode / storage blocked — app still works in-session */ }
+}
+
+/* ============================================================
+   FORMAT + CALC
+   ============================================================ */
+function cur(n){
+  var v = (typeof n === "number" && isFinite(n)) ? n : 0;
+  var neg = v < 0; v = Math.abs(v);
+  var s = v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return (neg?"-":"") + DB.settings.currency + s;
+}
+function cur0(n){
+  var v = (typeof n === "number" && isFinite(n)) ? n : 0;
+  var neg = v<0; v=Math.abs(v);
+  var s = Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return (neg?"-":"") + DB.settings.currency + s;
+}
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function pct(a,b){ return (b>0) ? Math.round(a/b*100) : 0; }
+
+function clientName(id){
+  for(var i=0;i<DB.clients.length;i++) if(DB.clients[i].id===id) return DB.clients[i].name;
+  return "—";
+}
+function clientById(id){
+  for(var i=0;i<DB.clients.length;i++) if(DB.clients[i].id===id) return DB.clients[i];
+  return null;
+}
+function paidFor(num){
+  var t=0;
+  for(var i=0;i<DB.payments.length;i++) if(DB.payments[i].inv===num) t += (+DB.payments[i].amount||0);
+  return t;
+}
+function lastPayDate(num){
+  var best=null;
+  for(var i=0;i<DB.payments.length;i++){
+    if(DB.payments[i].inv!==num) continue;
+    var d=parseD(DB.payments[i].date); if(!d) continue;
+    if(!best || d>best) best=d;
+  }
+  return best;
+}
+
+/* the single derivation used everywhere — one source of truth */
+function calc(inv){
+  var t = today();
+  var amount = (+inv.amount)||0, tax = (+inv.tax)||0;
+  var total = amount + tax;
+  var paid = paidFor(inv.num);
+  var balance = Math.round((total - paid)*100)/100;
+  var due = parseD(inv.due);
+  var status, days = 0, bucket = "—";
+
+  if(!due && paid <= 0.005){ status = "Draft"; }
+  else if(total <= 0.005 && paid <= 0.005){ status = "Draft"; }
+  else if(balance <= 0.005){ status = "Paid"; }
+  else if(!due){ status = "Partially Paid"; bucket = "Current"; }
+  else if(due < t){
+    status = "Overdue";
+    days = daysBetween(due, t);
+    bucket = days<=30 ? "1–30" : days<=60 ? "31–60" : days<=90 ? "61–90" : "90+";
+  }
+  else if(paid > 0){ status = "Partially Paid"; bucket = "Current"; }
+  else if(daysBetween(t, due) <= (+DB.settings.dueSoon||7)){ status = "Due Soon"; bucket = "Current"; }
+  else { status = "Sent"; bucket = "Current"; }
+
+  return {total:total, paid:paid, balance:balance, status:status,
+          days:days, bucket:bucket, due:due, overpaid: balance < -0.005};
+}
+
+function allCalc(){
+  var out=[];
+  for(var i=0;i<DB.invoices.length;i++){
+    var inv=DB.invoices[i], c=calc(inv);
+    out.push({inv:inv, c:c});
+  }
+  return out;
+}
+
+function pillFor(status){
+  var m={"Paid":"p-paid","Overdue":"p-over","Due Soon":"p-soon",
+         "Partially Paid":"p-part","Sent":"p-sent","Draft":"p-draft"};
+  return '<span class="pill '+(m[status]||"p-sent")+'">'+esc(status)+'</span>';
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+var PAGES = [
+  {id:"start",   ico:"◆", name:"Start Here"},
+  {id:"dash",    ico:"▦", name:"Dashboard"},
+  {id:"invoices",ico:"▤", name:"Invoices"},
+  {id:"payments",ico:"↓", name:"Payments"},
+  {id:"clients", ico:"◎", name:"Clients"},
+  {id:"chase",   ico:"!", name:"Chase List"},
+  {id:"scripts", ico:"✉", name:"Follow-Up"},
+  {id:"reports", ico:"▧", name:"Reports"},
+  {id:"settings",ico:"⚙", name:"Settings"}
+];
+var page = "dash";
+
+function overdueCount(){
+  var n=0, all=allCalc();
+  for(var i=0;i<all.length;i++) if(all[i].c.status==="Overdue") n++;
+  return n;
+}
+
+function drawNav(){
+  var od = overdueCount(), h="";
+  for(var i=0;i<PAGES.length;i++){
+    var p=PAGES[i];
+    var badge = (p.id==="chase" && od>0) ? '<span class="tag">'+od+'</span>' : "";
+    h += '<button data-go="'+p.id+'" class="'+(page===p.id?"on":"")+'">'+
+         '<span class="ico">'+p.ico+'</span>'+esc(p.name)+badge+'</button>';
+  }
+  document.getElementById("nav").innerHTML = h;
+  document.getElementById("bizName").textContent = DB.settings.business || "Your Business";
+}
+
+function go(id){ page=id; render(); window.scrollTo(0,0); }
+
+/* ============================================================
+   PAGES
+   ============================================================ */
+function pageStart(){
+  var s = DB.sample ? '<div class="note warn"><b>Sample data is loaded.</b> Everything you see is an '+
+    'example so you can explore how the system works. When you are ready, go to Settings and '+
+    'choose <b>Clear sample data</b> — that leaves you a clean file with your own settings intact.</div>' : "";
+  return '<div class="head"><div><h1>Start Here</h1>'+
+    '<p>Five steps. Around five minutes. Then the file runs itself.</p></div></div>'+ s +
+    '<div class="panel"><h2>Set up in 5 steps</h2><div class="pad"><ol class="steps">'+
+      '<li><b>Enter your settings</b><span>Business name, currency symbol, and your standard payment '+
+        'terms (e.g. 30 days). Due dates fill in automatically from these.</span></li>'+
+      '<li><b>Add your clients</b><span>Name, contact person, email and phone. You only do this once '+
+        'per client — invoices then link to them.</span></li>'+
+      '<li><b>Add your invoices</b><span>Invoice number, client, amount. The due date, total, balance '+
+        'and status all calculate themselves.</span></li>'+
+      '<li><b>Record payments as they arrive</b><span>Log the amount against the invoice number. '+
+        'Partial payments are fully supported — the invoice updates on its own.</span></li>'+
+      '<li><b>Work the Chase List</b><span>Open it any day. It shows who is overdue, worst first, '+
+        'with the exact wording to send them from the Follow-Up tab.</span></li>'+
+    '</ol></div></div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h2>What this answers</h2><div class="pad">'+
+        '<p style="margin-bottom:10px"><b>Who owes me money right now?</b><br>'+
+        '<span class="mut">Dashboard and Chase List, with days overdue on every line.</span></p>'+
+        '<p style="margin-bottom:10px"><b>What do I do about it today?</b><br>'+
+        '<span class="mut">A priority-ordered chase list plus ready-to-send wording that escalates '+
+        'with how late the invoice is.</span></p>'+
+        '<p><b>How much cash is actually arriving?</b><br>'+
+        '<span class="mut">A 30/60/90-day forecast built from your unpaid invoices and their due dates.</span></p>'+
+      '</div></div>'+
+      '<div class="panel"><h2>Good to know</h2><div class="pad">'+
+        '<p style="margin-bottom:9px">Your data is saved in this browser on this device only. '+
+        'Nothing is uploaded anywhere, and there is no account to create.</p>'+
+        '<p style="margin-bottom:9px">Use <b>Export CSV</b> on any tab to keep a backup or open your '+
+        'records in Excel or Google Sheets.</p>'+
+        '<p>Statuses are never typed by hand — they are worked out from your dates and payments, so '+
+        'they can never fall out of date.</p>'+
+      '</div></div>'+
+    '</div>';
+}
+
+function pageDash(){
+  var all = allCalc(), t = today();
+  var totInv=0, totPaid=0, outstanding=0, overdue=0, dueWeek=0, paidCount=0, nOverdue=0;
+  var buckets = {"Current":{n:0,v:0},"1–30":{n:0,v:0},"31–60":{n:0,v:0},"61–90":{n:0,v:0},"90+":{n:0,v:0}};
+  var f30=0,f60=0,f90=0;
+
+  for(var i=0;i<all.length;i++){
+    var inv=all[i].inv, c=all[i].c;
+    totInv += c.total; totPaid += c.paid;
+    if(c.status==="Paid") paidCount++;
+    if(c.balance > 0.005){
+      outstanding += c.balance;
+      if(c.status==="Overdue"){ overdue += c.balance; nOverdue++; }
+      if(buckets[c.bucket]) { buckets[c.bucket].n++; buckets[c.bucket].v += c.balance; }
+      if(c.due){
+        var dd = daysBetween(t, c.due);
+        if(dd>=0 && dd<=7) dueWeek += c.balance;
+        if(dd>=0 && dd<=30) f30 += c.balance;
+        else if(dd>30 && dd<=60) f60 += c.balance;
+        else if(dd>60 && dd<=90) f90 += c.balance;
+      }
+    }
+  }
+  var rate = pct(totPaid, totInv);
+
+  var h = '<div class="head"><div><h1>Dashboard</h1><p>Everything you are owed, and when it lands.</p></div>'+
+    '<div class="row"><button class="btn ghost sm" data-act="exportAll">Export all data (CSV)</button></div></div>';
+
+  h += '<div class="kpis">'+
+    kpi("Total invoiced", cur0(totInv), all.length+" invoices","")+
+    kpi("Collected", cur0(totPaid), rate+"% collection rate","good")+
+    kpi("Outstanding", cur0(outstanding), (all.length-paidCount)+" unpaid","")+
+    kpi("Overdue", cur0(overdue), nOverdue+" invoice"+(nOverdue===1?"":"s")+" late","alert")+
+    kpi("Due next 7 days", cur0(dueWeek), "coming up","amber")+
+  '</div>';
+
+  /* forecast */
+  h += '<div class="panel"><h2>Cash coming in <small>Based on unpaid invoices and their due dates</small></h2>'+
+    '<div class="pad"><div class="kpis" style="margin:0">'+
+      kpi("Next 30 days", cur0(f30), "if paid on time","good")+
+      kpi("31–60 days", cur0(f60), "if paid on time","")+
+      kpi("61–90 days", cur0(f90), "if paid on time","")+
+      kpi("Already overdue", cur0(overdue), "at risk — chase now","alert")+
+    '</div></div></div>';
+
+  /* aging + monthly */
+  var maxB = 0;
+  for(var k in buckets) if(buckets[k].v>maxB) maxB=buckets[k].v;
+  var ag = '<div class="bars">';
+  var order=["Current","1–30","31–60","61–90","90+"];
+  var cls={"Current":"","1–30":"b","31–60":"b","61–90":"a","90+":"a"};
+  for(var j=0;j<order.length;j++){
+    var b=buckets[order[j]];
+    var w = maxB>0 ? Math.round(b.v/maxB*100) : 0;
+    ag += '<div class="bar-row"><div>'+order[j]+' <span class="mut">('+b.n+')</span></div>'+
+      '<div class="track"><div class="fill '+cls[order[j]]+'" style="width:'+w+'%"></div></div>'+
+      '<div class="num">'+cur0(b.v)+'</div></div>';
+  }
+  ag += '</div>';
+
+  h += '<div class="grid2">'+
+    '<div class="panel"><h2>Invoice aging <small>Outstanding by age</small></h2><div class="pad">'+ag+'</div></div>'+
+    '<div class="panel"><h2>Invoiced vs collected <small>Last 6 months</small></h2><div class="pad">'+monthChart()+'</div></div>'+
+  '</div>';
+
+  /* client insight */
+  var cs = clientStats();
+  cs.sort(function(a,b){ return b.outstanding - a.outstanding; });
+  var top = cs.slice(0,5), topRows="";
+  for(var q=0;q<top.length;q++){
+    if(top[q].outstanding<=0.005) continue;
+    topRows += '<tr><td>'+esc(top[q].name)+'</td>'+
+      '<td class="num">'+cur0(top[q].outstanding)+'</td>'+
+      '<td class="num">'+(top[q].overdue>0.005?'<span style="color:var(--alert)">'+cur0(top[q].overdue)+'</span>':'<span class="mut">—</span>')+'</td></tr>';
+  }
+  if(!topRows) topRows = '<tr><td colspan="3" class="mut">Nothing outstanding. Every invoice is settled.</td></tr>';
+
+  var slow = cs.filter(function(x){ return x.avgDays!==null; })
+               .sort(function(a,b){ return b.avgDays-a.avgDays; }).slice(0,5);
+  var slowRows="";
+  for(var w2=0;w2<slow.length;w2++){
+    slowRows += '<tr><td>'+esc(slow[w2].name)+'</td>'+
+      '<td class="num">'+slow[w2].avgDays+' days</td>'+
+      '<td>'+reliabilityPill(slow[w2].reliability)+'</td></tr>';
+  }
+  if(!slowRows) slowRows = '<tr><td colspan="3" class="mut">No payments recorded yet.</td></tr>';
+
+  h += '<div class="grid2">'+
+    '<div class="panel"><h2>Top clients by outstanding</h2><div class="tw"><table>'+
+      '<thead><tr><th>Client</th><th class="num">Outstanding</th><th class="num">Overdue</th></tr></thead>'+
+      '<tbody>'+topRows+'</tbody></table></div></div>'+
+    '<div class="panel"><h2>Slowest payers <small>Average days to pay</small></h2><div class="tw"><table>'+
+      '<thead><tr><th>Client</th><th class="num">Avg days</th><th>Reliability</th></tr></thead>'+
+      '<tbody>'+slowRows+'</tbody></table></div></div>'+
+  '</div>';
+
+  return h;
+}
+
+function kpi(lab,val,sub,cls){
+  return '<div class="kpi '+(cls||"")+'"><div class="lab">'+esc(lab)+'</div>'+
+    '<div class="val">'+val+'</div><div class="sub">'+esc(sub)+'</div></div>';
+}
+
+function monthChart(){
+  var months=[], t=today();
+  for(var i=5;i>=0;i--){
+    var d=new Date(t.getFullYear(), t.getMonth()-i, 1);
+    months.push({y:d.getFullYear(), m:d.getMonth(), inv:0, col:0,
+      lb:d.toLocaleDateString(undefined,{month:"short"})});
+  }
+  for(var a=0;a<DB.invoices.length;a++){
+    var d1=parseD(DB.invoices[a].issue); if(!d1) continue;
+    for(var b=0;b<months.length;b++)
+      if(months[b].y===d1.getFullYear() && months[b].m===d1.getMonth())
+        months[b].inv += ((+DB.invoices[a].amount)||0) + ((+DB.invoices[a].tax)||0);
+  }
+  for(var c2=0;c2<DB.payments.length;c2++){
+    var d2=parseD(DB.payments[c2].date); if(!d2) continue;
+    for(var e=0;e<months.length;e++)
+      if(months[e].y===d2.getFullYear() && months[e].m===d2.getMonth())
+        months[e].col += (+DB.payments[c2].amount)||0;
+  }
+  var max=0;
+  for(var f=0;f<months.length;f++){ max=Math.max(max, months[f].inv, months[f].col); }
+  var h='<div class="mbars">';
+  for(var g=0;g<months.length;g++){
+    var m=months[g];
+    var h1 = max>0 ? Math.max(2, Math.round(m.inv/max*118)) : 2;
+    var h2 = max>0 ? Math.max(2, Math.round(m.col/max*118)) : 2;
+    h += '<div class="mbar"><div class="stack">'+
+      '<div class="s s1" style="height:'+h1+'px" title="Invoiced '+cur0(m.inv)+'"></div>'+
+      '<div class="s s2" style="height:'+h2+'px" title="Collected '+cur0(m.col)+'"></div>'+
+      '</div><div class="lb">'+m.lb+'</div></div>';
+  }
+  h += '</div><div class="legend"><span><i class="s1" style="background:var(--blue)"></i>Invoiced</span>'+
+       '<span><i style="background:var(--accent)"></i>Collected</span></div>';
+  return h;
+}
+
+/* ---------- clients / scorecard ---------- */
+function clientStats(){
+  var out=[];
+  for(var i=0;i<DB.clients.length;i++){
+    var cl=DB.clients[i];
+    var billed=0, paid=0, outstanding=0, overdue=0, count=0, lateCount=0;
+    var payDays=[], settled=0;
+    for(var j=0;j<DB.invoices.length;j++){
+      var inv=DB.invoices[j];
+      if(inv.client!==cl.id) continue;
+      var c=calc(inv);
+      count++; billed += c.total; paid += c.paid;
+      if(c.balance>0.005) outstanding += c.balance;
+      if(c.status==="Overdue"){ overdue += c.balance; lateCount++; }
+      if(c.status==="Paid"){
+        settled++;
+        var lp=lastPayDate(inv.num), issue=parseD(inv.issue), due=parseD(inv.due);
+        if(lp && issue) payDays.push(daysBetween(issue, lp));
+        if(lp && due && lp>due) lateCount++;
+      }
+    }
+    var avg=null;
+    if(payDays.length){
+      var s=0; for(var k=0;k<payDays.length;k++) s+=payDays[k];
+      avg = Math.round(s/payDays.length);
+    }
+    var rel = "No data";
+    if(avg!==null){
+      var terms = (+DB.settings.terms)||30;
+      if(overdue>0.005) rel = "At risk";
+      else if(avg <= terms) rel = "Reliable";
+      else if(avg <= terms+15) rel = "Slow";
+      else rel = "Very slow";
+    } else if(overdue>0.005) rel = "At risk";
+
+    out.push({id:cl.id,name:cl.name,contact:cl.contact,email:cl.email,phone:cl.phone,
+      billed:billed,paid:paid,outstanding:outstanding,overdue:overdue,count:count,
+      avgDays:avg,reliability:rel,settled:settled});
+  }
+  return out;
+}
+function reliabilityPill(r){
+  var m={"Reliable":"p-paid","Slow":"p-soon","Very slow":"p-over","At risk":"p-over","No data":"p-draft"};
+  return '<span class="pill '+(m[r]||"p-draft")+'">'+esc(r)+'</span>';
+}
+
+function pageClients(){
+  var cs = clientStats();
+  cs.sort(function(a,b){ return b.outstanding-a.outstanding; });
+  var rows="";
+  for(var i=0;i<cs.length;i++){
+    var c=cs[i];
+    rows += '<tr>'+
+      '<td><b>'+esc(c.name)+'</b>'+(c.contact?'<div class="mut" style="font-size:12.5px">'+esc(c.contact)+'</div>':'')+'</td>'+
+      '<td class="mut" style="font-size:12.5px">'+esc(c.email||"—")+(c.phone?'<div>'+esc(c.phone)+'</div>':'')+'</td>'+
+      '<td class="num">'+c.count+'</td>'+
+      '<td class="num">'+cur0(c.billed)+'</td>'+
+      '<td class="num">'+cur0(c.paid)+'</td>'+
+      '<td class="num">'+(c.outstanding>0.005?cur0(c.outstanding):'<span class="mut">—</span>')+'</td>'+
+      '<td class="num">'+(c.overdue>0.005?'<span style="color:var(--alert);font-weight:650">'+cur0(c.overdue)+'</span>':'<span class="mut">—</span>')+'</td>'+
+      '<td class="num">'+(c.avgDays!==null?c.avgDays:'<span class="mut">—</span>')+'</td>'+
+      '<td>'+reliabilityPill(c.reliability)+'</td>'+
+      '<td class="num"><button class="btn ghost sm" data-edit-client="'+c.id+'">Edit</button></td>'+
+    '</tr>';
+  }
+  if(!rows) rows='<tr><td colspan="10"><div class="empty">No clients yet. Add your first client to get started.</div></td></tr>';
+
+  return '<div class="head"><div><h1>Clients</h1>'+
+    '<p>Not just a contact list — every client scored on how they actually pay you.</p></div>'+
+    '<div class="row"><button class="btn ghost sm" data-act="exportClients">Export CSV</button>'+
+    '<button class="btn" data-act="newClient">+ Add client</button></div></div>'+
+    '<div class="note">“Avg days” is measured from invoice date to the date the invoice was fully settled. '+
+    'Reliability compares that against your standard terms of '+((+DB.settings.terms)||30)+' days.</div>'+
+    '<div class="panel"><div class="tw"><table><thead><tr>'+
+      '<th>Client</th><th>Contact</th><th class="num">Invoices</th><th class="num">Billed</th>'+
+      '<th class="num">Paid</th><th class="num">Outstanding</th><th class="num">Overdue</th>'+
+      '<th class="num">Avg days</th><th>Reliability</th><th></th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- invoices ---------- */
+var invFilter = "all";
+function pageInvoices(){
+  var all = allCalc();
+  all.sort(function(a,b){
+    var da=parseD(a.inv.issue), db2=parseD(b.inv.issue);
+    if(!da) return 1; if(!db2) return -1;
+    return db2-da;
+  });
+  var rows="";
+  for(var i=0;i<all.length;i++){
+    var inv=all[i].inv, c=all[i].c;
+    if(invFilter==="unpaid" && c.balance<=0.005) continue;
+    if(invFilter==="overdue" && c.status!=="Overdue") continue;
+    if(invFilter==="paid" && c.status!=="Paid") continue;
+    rows += '<tr>'+
+      '<td><b>'+esc(inv.num)+'</b></td>'+
+      '<td>'+esc(clientName(inv.client))+'<div class="mut" style="font-size:12.5px">'+esc(inv.service||"")+'</div></td>'+
+      '<td class="mut">'+esc(inv.issue||"—")+'</td>'+
+      '<td class="mut">'+esc(inv.due||"—")+'</td>'+
+      '<td class="num">'+cur(c.total)+'</td>'+
+      '<td class="num">'+cur(c.paid)+'</td>'+
+      '<td class="num"><b>'+cur(c.balance)+'</b>'+(c.overpaid?'<div style="font-size:11.5px;color:var(--amber)">overpaid</div>':'')+'</td>'+
+      '<td>'+pillFor(c.status)+'</td>'+
+      '<td class="num">'+(c.days>0?'<span style="color:var(--alert);font-weight:650">'+c.days+'</span>':'<span class="mut">—</span>')+'</td>'+
+      '<td class="num"><button class="btn ghost sm" data-pay="'+esc(inv.num)+'">Payment</button> '+
+        '<button class="btn ghost sm" data-edit-inv="'+inv.id+'">Edit</button></td>'+
+    '</tr>';
+  }
+  if(!rows) rows='<tr><td colspan="10"><div class="empty">No invoices match this filter.</div></td></tr>';
+
+  var f = function(k,l){ return '<button class="btn '+(invFilter===k?"":"ghost")+' sm" data-filter="'+k+'">'+l+'</button>'; };
+
+  return '<div class="head"><div><h1>Invoices</h1>'+
+    '<p>Status, balance and days overdue calculate themselves — nothing to update by hand.</p></div>'+
+    '<div class="row"><button class="btn ghost sm" data-act="exportInvoices">Export CSV</button>'+
+    '<button class="btn" data-act="newInvoice">+ Add invoice</button></div></div>'+
+    '<div class="row" style="margin-bottom:14px">'+f("all","All")+f("unpaid","Unpaid")+
+      f("overdue","Overdue")+f("paid","Paid")+'</div>'+
+    '<div class="panel"><div class="tw"><table><thead><tr>'+
+      '<th>Invoice</th><th>Client / service</th><th>Issued</th><th>Due</th>'+
+      '<th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th>'+
+      '<th>Status</th><th class="num">Days late</th><th></th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- payments ---------- */
+function pagePayments(){
+  var ps = DB.payments.slice();
+  ps.sort(function(a,b){ var x=parseD(a.date), y=parseD(b.date); if(!x)return 1; if(!y)return -1; return y-x; });
+  var rows="";
+  for(var i=0;i<ps.length;i++){
+    var p=ps[i];
+    var known=false;
+    for(var j=0;j<DB.invoices.length;j++) if(DB.invoices[j].num===p.inv){ known=true; break; }
+    rows += '<tr>'+
+      '<td class="mut">'+esc(p.date||"—")+'</td>'+
+      '<td><b>'+esc(p.inv)+'</b>'+(known?'':' <span class="pill p-over">unknown invoice</span>')+'</td>'+
+      '<td class="num">'+cur(+p.amount||0)+'</td>'+
+      '<td class="mut">'+esc(p.method||"—")+'</td>'+
+      '<td class="mut">'+esc(p.note||"")+'</td>'+
+      '<td class="num"><button class="btn danger sm" data-del-pay="'+p.id+'">Delete</button></td>'+
+    '</tr>';
+  }
+  if(!rows) rows='<tr><td colspan="6"><div class="empty">No payments recorded yet.</div></td></tr>';
+
+  return '<div class="head"><div><h1>Payments</h1>'+
+    '<p>Log money as it arrives. Partial payments are fully supported — invoices update themselves.</p></div>'+
+    '<div class="row"><button class="btn ghost sm" data-act="exportPayments">Export CSV</button>'+
+    '<button class="btn" data-act="newPayment">+ Record payment</button></div></div>'+
+    '<div class="panel"><div class="tw"><table><thead><tr>'+
+      '<th>Date</th><th>Invoice</th><th class="num">Amount</th><th>Method</th><th>Note</th><th></th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- chase ---------- */
+function chaseAction(days){
+  if(days<=30)  return {label:"Gentle nudge", cls:"p-soon", key:"nudge"};
+  if(days<=60)  return {label:"Firm reminder", cls:"p-part", key:"firm"};
+  if(days<=90)  return {label:"Formal notice", cls:"p-over", key:"formal"};
+  return {label:"Final demand", cls:"p-over", key:"final"};
+}
+function pageChase(){
+  var all = allCalc().filter(function(x){ return x.c.status==="Overdue"; });
+  all.sort(function(a,b){ return b.c.days - a.c.days; });
+  var rows="", total=0;
+  for(var i=0;i<all.length;i++){
+    var inv=all[i].inv, c=all[i].c, act=chaseAction(c.days);
+    var cl=clientById(inv.client);
+    total += c.balance;
+    rows += '<tr>'+
+      '<td class="num"><b>'+(i+1)+'</b></td>'+
+      '<td><b>'+esc(clientName(inv.client))+'</b>'+
+        (cl&&cl.email?'<div class="mut" style="font-size:12.5px">'+esc(cl.email)+'</div>':'')+
+        (cl&&cl.phone?'<div class="mut" style="font-size:12.5px">'+esc(cl.phone)+'</div>':'')+'</td>'+
+      '<td>'+esc(inv.num)+'<div class="mut" style="font-size:12.5px">'+esc(inv.service||"")+'</div></td>'+
+      '<td class="num"><b>'+cur(c.balance)+'</b></td>'+
+      '<td class="num"><span style="color:var(--alert);font-weight:700">'+c.days+'</span></td>'+
+      '<td><span class="pill p-over">'+esc(c.bucket)+'</span></td>'+
+      '<td><span class="pill '+act.cls+'">'+esc(act.label)+'</span></td>'+
+      '<td class="num"><button class="btn ghost sm" data-script="'+act.key+'|'+esc(inv.num)+'">Get wording</button></td>'+
+    '</tr>';
+  }
+
+  var head = '<div class="head"><div><h1>Chase List</h1>'+
+    '<p>Everyone who is late, worst first — with the right action for how late they are.</p></div>'+
+    '<div class="row"><button class="btn ghost sm" data-act="exportChase">Export CSV</button></div></div>';
+
+  if(!rows){
+    return head + '<div class="panel"><div class="empty">'+
+      '<div style="font-size:30px;margin-bottom:10px;color:var(--accent)">✓</div>'+
+      '<b style="color:var(--ink);font-size:16px">Nothing is overdue.</b>'+
+      '<div style="margin-top:6px">Every invoice is either paid or still within its terms.</div>'+
+      '</div></div>';
+  }
+
+  return head +
+    '<div class="kpis">'+
+      kpi("Total overdue", cur0(total), all.length+" invoice"+(all.length===1?"":"s"),"alert")+
+      kpi("Oldest debt", all[0].c.days+" days", esc(clientName(all[0].inv.client)),"alert")+
+      kpi("Largest overdue", cur0(Math.max.apply(null, all.map(function(x){return x.c.balance;}))), "single invoice","amber")+
+    '</div>'+
+    '<div class="panel"><h2>Chase in this order</h2><div class="tw"><table><thead><tr>'+
+      '<th class="num">#</th><th>Client</th><th>Invoice</th><th class="num">Owed</th>'+
+      '<th class="num">Days late</th><th>Bucket</th><th>Action</th><th></th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- scripts ---------- */
+var SCRIPTS = {
+  nudge:{ title:"Gentle nudge", when:"1–30 days overdue",
+    email:"Subject: Invoice {INV} — quick check\n\nHi {NAME},\n\nHope things are going well.\n\nI'm just following up on invoice {INV} for {AMOUNT}, which was due on {DUE}. It may well have been missed in the shuffle — it happens.\n\nIf it's already scheduled, no action needed and thank you. If not, could you let me know when I can expect it?\n\nHappy to resend the invoice if that helps.\n\nBest,\n{BUSINESS}",
+    sms:"Hi {NAME} — quick nudge that invoice {INV} ({AMOUNT}) was due {DUE}. Let me know if you need it resent. Thanks! — {BUSINESS}" },
+  firm:{ title:"Firm reminder", when:"31–60 days overdue",
+    email:"Subject: Overdue: invoice {INV} — {DAYS} days past due\n\nHi {NAME},\n\nInvoice {INV} for {AMOUNT} is now {DAYS} days past its due date of {DUE}, and I haven't yet received payment or an update.\n\nCould you confirm the payment date this week? If there's a problem with the invoice or something is holding it up internally, tell me and I'll help sort it.\n\nI'd like to get this closed without it dragging on further.\n\nBest,\n{BUSINESS}",
+    sms:"Hi {NAME} — invoice {INV} ({AMOUNT}) is now {DAYS} days overdue. Can you confirm a payment date this week? — {BUSINESS}" },
+  formal:{ title:"Formal notice", when:"61–90 days overdue",
+    email:"Subject: Formal notice — invoice {INV}, {DAYS} days overdue\n\n{NAME},\n\nInvoice {INV} for {AMOUNT} was due on {DUE} and is now {DAYS} days overdue. Previous reminders have gone unanswered.\n\nPlease arrange payment within 7 days of this message.\n\nIf there is a dispute or a reason payment cannot be made, I need to hear it in writing within the same 7 days so it can be resolved.\n\nWithout payment or a written response, I will pause any further work and escalate collection of this balance.\n\nRegards,\n{BUSINESS}",
+    sms:"{NAME} — formal notice: invoice {INV} ({AMOUNT}) is {DAYS} days overdue. Payment or a written response is needed within 7 days. — {BUSINESS}" },
+  final:{ title:"Final demand", when:"90+ days overdue",
+    email:"Subject: Final demand before escalation — invoice {INV}\n\n{NAME},\n\nInvoice {INV} for {AMOUNT}, due {DUE}, is now {DAYS} days overdue. Repeated reminders have received no payment and no response.\n\nThis is a final request for payment in full within 7 days of the date of this message.\n\nIf the balance is not settled or a written repayment arrangement agreed within that period, I will proceed with formal recovery, which may include a collections agency or a claim through the small claims process. Any costs and statutory interest arising will be added to the balance owed.\n\nI would much rather settle this directly. The account can be closed today by paying {AMOUNT}.\n\nRegards,\n{BUSINESS}",
+    sms:"{NAME} — final demand: invoice {INV} ({AMOUNT}), {DAYS} days overdue. Full payment or a written arrangement needed within 7 days before formal recovery. — {BUSINESS}" }
+};
+
+function fill(tpl, ctx){
+  return tpl.replace(/\{(\w+)\}/g, function(m,k){ return (ctx[k]!=null) ? ctx[k] : m; });
+}
+function pageScripts(){
+  var h = '<div class="head"><div><h1>Follow-Up Wording</h1>'+
+    '<p>Four escalating tones. Copy, adjust a line if you like, send.</p></div></div>'+
+    '<div class="note">The Chase List tells you which tone each invoice needs. Every placeholder '+
+    '(client name, invoice number, amount, days late) is filled in automatically when you open a '+
+    'script from there.</div>';
+  var keys=["nudge","firm","formal","final"];
+  for(var i=0;i<keys.length;i++){
+    var s=SCRIPTS[keys[i]];
+    h += '<div class="panel"><h2>'+esc(s.title)+' <small>'+esc(s.when)+'</small></h2><div class="pad">'+
+      '<div class="script"><h4>Email <button class="btn ghost sm" data-copy="'+keys[i]+'|email">Copy</button></h4>'+
+      '<pre id="sc-'+keys[i]+'-email">'+esc(s.email)+'</pre></div>'+
+      '<div class="script"><h4>Text message <button class="btn ghost sm" data-copy="'+keys[i]+'|sms">Copy</button></h4>'+
+      '<pre id="sc-'+keys[i]+'-sms">'+esc(s.sms)+'</pre></div>'+
+      '</div></div>';
+  }
+  return h;
+}
+
+/* ---------- reports ---------- */
+function pageReports(){
+  var t=today();
+  /* monthly */
+  var months={};
+  for(var i=0;i<DB.invoices.length;i++){
+    var d=parseD(DB.invoices[i].issue); if(!d) continue;
+    var k=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);
+    if(!months[k]) months[k]={inv:0,col:0};
+    months[k].inv += ((+DB.invoices[i].amount)||0)+((+DB.invoices[i].tax)||0);
+  }
+  for(var j=0;j<DB.payments.length;j++){
+    var d2=parseD(DB.payments[j].date); if(!d2) continue;
+    var k2=d2.getFullYear()+"-"+("0"+(d2.getMonth()+1)).slice(-2);
+    if(!months[k2]) months[k2]={inv:0,col:0};
+    months[k2].col += (+DB.payments[j].amount)||0;
+  }
+  var mk=Object.keys(months).sort().reverse();
+  var mrows="", ti=0, tc=0;
+  for(var a=0;a<mk.length;a++){
+    var m=months[mk[a]]; ti+=m.inv; tc+=m.col;
+    mrows += '<tr><td>'+esc(mk[a])+'</td><td class="num">'+cur(m.inv)+'</td>'+
+      '<td class="num">'+cur(m.col)+'</td><td class="num">'+pct(m.col,m.inv)+'%</td></tr>';
+  }
+  if(!mrows) mrows='<tr><td colspan="4" class="mut">No data yet.</td></tr>';
+  else mrows += '<tr style="background:var(--paper);font-weight:650"><td>Total</td>'+
+    '<td class="num">'+cur(ti)+'</td><td class="num">'+cur(tc)+'</td>'+
+    '<td class="num">'+pct(tc,ti)+'%</td></tr>';
+
+  /* by service */
+  var svc={};
+  for(var b=0;b<DB.invoices.length;b++){
+    var s=(DB.invoices[b].service||"Uncategorised");
+    if(!svc[s]) svc[s]={n:0,v:0};
+    svc[s].n++; svc[s].v += ((+DB.invoices[b].amount)||0)+((+DB.invoices[b].tax)||0);
+  }
+  var sk=Object.keys(svc).sort(function(x,y){ return svc[y].v-svc[x].v; });
+  var srows="";
+  for(var c=0;c<sk.length;c++){
+    srows += '<tr><td>'+esc(sk[c])+'</td><td class="num">'+svc[sk[c]].n+'</td>'+
+      '<td class="num">'+cur(svc[sk[c]].v)+'</td></tr>';
+  }
+  if(!srows) srows='<tr><td colspan="3" class="mut">No data yet.</td></tr>';
+
+  /* by client */
+  var cs=clientStats().sort(function(x,y){ return y.billed-x.billed; });
+  var crows="";
+  for(var e=0;e<cs.length;e++){
+    crows += '<tr><td>'+esc(cs[e].name)+'</td><td class="num">'+cs[e].count+'</td>'+
+      '<td class="num">'+cur(cs[e].billed)+'</td><td class="num">'+cur(cs[e].paid)+'</td>'+
+      '<td class="num">'+cur(cs[e].outstanding)+'</td></tr>';
+  }
+  if(!crows) crows='<tr><td colspan="5" class="mut">No clients yet.</td></tr>';
+
+  return '<div class="head"><div><h1>Reports</h1><p>Where the money came from, and how fast it arrived.</p></div>'+
+    '<div class="row"><button class="btn ghost sm" data-act="print">Print / save as PDF</button></div></div>'+
+    '<div class="panel"><h2>Monthly summary</h2><div class="tw"><table><thead><tr>'+
+      '<th>Month</th><th class="num">Invoiced</th><th class="num">Collected</th><th class="num">Rate</th>'+
+    '</tr></thead><tbody>'+mrows+'</tbody></table></div></div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h2>Revenue by service</h2><div class="tw"><table><thead><tr>'+
+        '<th>Service</th><th class="num">Invoices</th><th class="num">Value</th>'+
+      '</tr></thead><tbody>'+srows+'</tbody></table></div></div>'+
+      '<div class="panel"><h2>Revenue by client</h2><div class="tw"><table><thead><tr>'+
+        '<th>Client</th><th class="num">#</th><th class="num">Billed</th>'+
+        '<th class="num">Paid</th><th class="num">Owing</th>'+
+      '</tr></thead><tbody>'+crows+'</tbody></table></div></div>'+
+    '</div>';
+}
+
+/* ---------- settings ---------- */
+function pageSettings(){
+  var s=DB.settings;
+  return '<div class="head"><div><h1>Settings</h1><p>Set once. Everything else follows.</p></div></div>'+
+    '<div class="panel"><h2>Business details</h2><div class="pad">'+
+      '<div class="f2">'+
+        '<div class="field"><label>Business name</label><input id="set-biz" value="'+esc(s.business)+'"></div>'+
+        '<div class="field"><label>Currency symbol</label><input id="set-cur" value="'+esc(s.currency)+'" maxlength="4"></div>'+
+      '</div>'+
+      '<div class="f2">'+
+        '<div class="field"><label>Default payment terms (days)</label>'+
+          '<input id="set-terms" type="number" min="0" max="365" value="'+(+s.terms||30)+'">'+
+          '<div class="hint">Due dates are calculated from the issue date using this.</div></div>'+
+        '<div class="field"><label>“Due soon” window (days)</label>'+
+          '<input id="set-soon" type="number" min="0" max="90" value="'+(+s.dueSoon||7)+'">'+
+          '<div class="hint">Invoices due within this many days show as Due Soon.</div></div>'+
+      '</div>'+
+      '<div class="field"><label>Invoice number prefix</label>'+
+        '<input id="set-prefix" value="'+esc(s.prefix)+'" maxlength="12">'+
+        '<div class="hint">New invoices are numbered automatically using this prefix.</div></div>'+
+      '<button class="btn" data-act="saveSettings">Save settings</button>'+
+    '</div></div>'+
+    '<div class="panel"><h2>Your data</h2><div class="pad">'+
+      '<p style="margin-bottom:14px">Everything is stored in this browser on this device. Nothing is '+
+      'uploaded and there is no account. Export a CSV backup any time.</p>'+
+      '<div class="row">'+
+        '<button class="btn ghost sm" data-act="exportAll">Export all data (CSV)</button>'+
+        (DB.sample ? '<button class="btn sm" data-act="clearSample">Clear sample data</button>' : '')+
+        '<button class="btn danger sm" data-act="reset">Reset everything</button>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+function openModal(html){
+  document.getElementById("modal").innerHTML = html;
+  document.getElementById("veil").classList.add("on");
+}
+function closeModal(){ document.getElementById("veil").classList.remove("on"); }
+
+function clientOptions(sel){
+  var h="";
+  for(var i=0;i<DB.clients.length;i++)
+    h += '<option value="'+DB.clients[i].id+'"'+(sel===DB.clients[i].id?" selected":"")+'>'+esc(DB.clients[i].name)+'</option>';
+  return h;
+}
+function nextInvNum(){
+  var max=0, p=DB.settings.prefix||"INV-";
+  for(var i=0;i<DB.invoices.length;i++){
+    var m=String(DB.invoices[i].num).match(/(\d+)\s*$/);
+    if(m && +m[1]>max) max=+m[1];
+  }
+  return p + (max>0 ? max+1 : 1001);
+}
+
+function modalClient(id){
+  var c = id ? clientById(id) : {name:"",contact:"",email:"",phone:""};
+  if(!c) return;
+  openModal('<h3>'+(id?"Edit client":"Add client")+'</h3><div class="body">'+
+    '<div class="field"><label>Client / company name</label><input id="c-name" value="'+esc(c.name)+'" placeholder="Northgate Media"></div>'+
+    '<div class="field"><label>Contact person</label><input id="c-contact" value="'+esc(c.contact||"")+'" placeholder="Dana Whitfield"></div>'+
+    '<div class="f2">'+
+      '<div class="field"><label>Email</label><input id="c-email" value="'+esc(c.email||"")+'" placeholder="accounts@client.com"></div>'+
+      '<div class="field"><label>Phone</label><input id="c-phone" value="'+esc(c.phone||"")+'"></div>'+
+    '</div></div><div class="foot">'+
+    (id?'<button class="btn danger" data-act="delClient" data-id="'+id+'">Delete</button>':'')+
+    '<button class="btn ghost" data-act="close">Cancel</button>'+
+    '<button class="btn" data-act="saveClient" data-id="'+(id||"")+'">Save</button></div>');
+}
+
+function modalInvoice(id){
+  var inv=null;
+  if(id){ for(var i=0;i<DB.invoices.length;i++) if(DB.invoices[i].id===id) inv=DB.invoices[i]; }
+  var t=today();
+  if(!inv) inv={num:nextInvNum(),client:(DB.clients[0]?DB.clients[0].id:null),service:"",
+    issue:iso(t),due:iso(addDays(t,(+DB.settings.terms)||30)),amount:"",tax:0};
+  if(!DB.clients.length){
+    openModal('<h3>Add a client first</h3><div class="body">'+
+      '<p>Invoices link to a client, so add at least one client before creating an invoice.</p>'+
+      '</div><div class="foot"><button class="btn ghost" data-act="close">Cancel</button>'+
+      '<button class="btn" data-act="newClient">Add a client</button></div>');
+    return;
+  }
+  openModal('<h3>'+(id?"Edit invoice":"Add invoice")+'</h3><div class="body">'+
+    '<div class="f2">'+
+      '<div class="field"><label>Invoice number</label><input id="i-num" value="'+esc(inv.num)+'"></div>'+
+      '<div class="field"><label>Client</label><select id="i-client">'+clientOptions(inv.client)+'</select></div>'+
+    '</div>'+
+    '<div class="field"><label>Service / description</label><input id="i-service" value="'+esc(inv.service||"")+'" placeholder="Website design"></div>'+
+    '<div class="f2">'+
+      '<div class="field"><label>Issue date</label><input id="i-issue" type="date" value="'+esc(inv.issue||"")+'"></div>'+
+      '<div class="field"><label>Due date</label><input id="i-due" type="date" value="'+esc(inv.due||"")+'">'+
+        '<div class="hint">Leave blank to keep it a Draft.</div></div>'+
+    '</div>'+
+    '<div class="f2">'+
+      '<div class="field"><label>Amount</label><input id="i-amount" type="number" step="0.01" min="0" value="'+(inv.amount===""?"":(+inv.amount||0))+'" placeholder="1500"></div>'+
+      '<div class="field"><label>Tax (optional)</label><input id="i-tax" type="number" step="0.01" min="0" value="'+(+inv.tax||0)+'"></div>'+
+    '</div></div><div class="foot">'+
+    (id?'<button class="btn danger" data-act="delInvoice" data-id="'+id+'">Delete</button>':'')+
+    '<button class="btn ghost" data-act="close">Cancel</button>'+
+    '<button class="btn" data-act="saveInvoice" data-id="'+(id||"")+'">Save</button></div>');
+}
+
+function modalPayment(num){
+  var opts="";
+  var all=allCalc();
+  for(var i=0;i<all.length;i++){
+    var o=all[i];
+    if(o.c.balance<=0.005 && o.inv.num!==num) continue;
+    opts += '<option value="'+esc(o.inv.num)+'"'+(num===o.inv.num?" selected":"")+'>'+
+      esc(o.inv.num)+' — '+esc(clientName(o.inv.client))+' ('+cur(o.c.balance)+' owing)</option>';
+  }
+  if(!opts) opts='<option value="">No unpaid invoices</option>';
+  openModal('<h3>Record payment</h3><div class="body">'+
+    '<div class="field"><label>Against invoice</label><select id="p-inv">'+opts+'</select></div>'+
+    '<div class="f2">'+
+      '<div class="field"><label>Date received</label><input id="p-date" type="date" value="'+iso(today())+'"></div>'+
+      '<div class="field"><label>Amount</label><input id="p-amount" type="number" step="0.01" min="0" placeholder="0.00"></div>'+
+    '</div>'+
+    '<div class="f2">'+
+      '<div class="field"><label>Method</label><select id="p-method">'+
+        '<option>Bank transfer</option><option>Card</option><option>PayPal</option>'+
+        '<option>Cash</option><option>Cheque</option><option>Other</option></select></div>'+
+      '<div class="field"><label>Note (optional)</label><input id="p-note" placeholder="Part payment"></div>'+
+    '</div>'+
+    '<div class="hint">Partial payments are fine — record as many as you need against one invoice.</div>'+
+    '</div><div class="foot"><button class="btn ghost" data-act="close">Cancel</button>'+
+    '<button class="btn" data-act="savePayment">Save payment</button></div>');
+}
+
+function modalScript(key, num){
+  var inv=null;
+  for(var i=0;i<DB.invoices.length;i++) if(DB.invoices[i].num===num) inv=DB.invoices[i];
+  if(!inv) return;
+  var c=calc(inv), cl=clientById(inv.client), s=SCRIPTS[key];
+  var ctx={ NAME: (cl&&cl.contact) ? cl.contact : clientName(inv.client),
+            INV: inv.num, AMOUNT: cur(c.balance), DUE: inv.due||"—",
+            DAYS: c.days, BUSINESS: DB.settings.business||"" };
+  openModal('<h3>'+esc(s.title)+' — '+esc(inv.num)+'</h3><div class="body">'+
+    '<div class="script"><h4>Email <button class="btn ghost sm" data-copy-live="live-email">Copy</button></h4>'+
+      '<pre id="live-email">'+esc(fill(s.email,ctx))+'</pre></div>'+
+    '<div class="script"><h4>Text message <button class="btn ghost sm" data-copy-live="live-sms">Copy</button></h4>'+
+      '<pre id="live-sms">'+esc(fill(s.sms,ctx))+'</pre></div>'+
+    (cl&&cl.email?'<div class="hint">Send to: <b>'+esc(cl.email)+'</b></div>':'')+
+    '</div><div class="foot"><button class="btn ghost" data-act="close">Close</button></div>');
+}
+
+/* ============================================================
+   CSV
+   ============================================================ */
+function csvCell(v){
+  var s = String(v==null?"":v);
+  return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function toCSV(rows){
+  var out=[];
+  for(var i=0;i<rows.length;i++) out.push(rows[i].map(csvCell).join(","));
+  return out.join("\r\n");
+}
+function download(name, text){
+  try{
+    var blob = new Blob(["﻿"+text], {type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href=url; a.download=name; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  }catch(e){ alert("Export is blocked in this view. Open the file directly in your browser to export."); }
+}
+function exportInvoices(){
+  var rows=[["Invoice","Client","Service","Issue date","Due date","Amount","Tax","Total","Paid","Balance","Status","Days late"]];
+  var all=allCalc();
+  for(var i=0;i<all.length;i++){
+    var v=all[i].inv, c=all[i].c;
+    rows.push([v.num, clientName(v.client), v.service||"", v.issue||"", v.due||"",
+      (+v.amount||0).toFixed(2), (+v.tax||0).toFixed(2), c.total.toFixed(2),
+      c.paid.toFixed(2), c.balance.toFixed(2), c.status, c.days||0]);
+  }
+  download("invoices.csv", toCSV(rows));
+}
+function exportPayments(){
+  var rows=[["Date","Invoice","Amount","Method","Note"]];
+  for(var i=0;i<DB.payments.length;i++){
+    var p=DB.payments[i];
+    rows.push([p.date||"", p.inv, (+p.amount||0).toFixed(2), p.method||"", p.note||""]);
+  }
+  download("payments.csv", toCSV(rows));
+}
+function exportClients(){
+  var rows=[["Client","Contact","Email","Phone","Invoices","Billed","Paid","Outstanding","Overdue","Avg days to pay","Reliability"]];
+  var cs=clientStats();
+  for(var i=0;i<cs.length;i++){
+    var c=cs[i];
+    rows.push([c.name,c.contact||"",c.email||"",c.phone||"",c.count,c.billed.toFixed(2),
+      c.paid.toFixed(2),c.outstanding.toFixed(2),c.overdue.toFixed(2),
+      (c.avgDays===null?"":c.avgDays), c.reliability]);
+  }
+  download("clients.csv", toCSV(rows));
+}
+function exportChase(){
+  var rows=[["Priority","Client","Email","Phone","Invoice","Owed","Days late","Bucket","Action"]];
+  var all=allCalc().filter(function(x){return x.c.status==="Overdue";})
+    .sort(function(a,b){return b.c.days-a.c.days;});
+  for(var i=0;i<all.length;i++){
+    var v=all[i].inv, c=all[i].c, cl=clientById(v.client), act=chaseAction(c.days);
+    rows.push([i+1, clientName(v.client), cl?cl.email:"", cl?cl.phone:"", v.num,
+      c.balance.toFixed(2), c.days, c.bucket, act.label]);
+  }
+  download("chase-list.csv", toCSV(rows));
+}
+function exportAll(){
+  exportInvoices();
+  setTimeout(exportPayments, 350);
+  setTimeout(exportClients, 700);
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function val(id){ var el=document.getElementById(id); return el ? el.value.trim() : ""; }
+function num(id){ var v=parseFloat(val(id)); return isFinite(v) ? v : 0; }
+
+function actions(act, el){
+  if(act==="close"){ closeModal(); return; }
+
+  if(act==="newClient"){ modalClient(null); return; }
+  if(act==="saveClient"){
+    var id = el.getAttribute("data-id");
+    var name = val("c-name");
+    if(!name){ alert("Please enter a client name."); return; }
+    if(id){
+      var c=clientById(+id);
+      if(c){ c.name=name; c.contact=val("c-contact"); c.email=val("c-email"); c.phone=val("c-phone"); }
+    } else {
+      DB.clients.push({id:DB.nextId.client++, name:name, contact:val("c-contact"),
+        email:val("c-email"), phone:val("c-phone")});
+    }
+    save(); closeModal(); render(); return;
+  }
+  if(act==="delClient"){
+    var cid=+el.getAttribute("data-id");
+    var used=0;
+    for(var i=0;i<DB.invoices.length;i++) if(DB.invoices[i].client===cid) used++;
+    if(used && !confirm("This client has "+used+" invoice(s). Those invoices will remain but show no client. Delete anyway?")) return;
+    DB.clients = DB.clients.filter(function(c){ return c.id!==cid; });
+    save(); closeModal(); render(); return;
+  }
+
+  if(act==="newInvoice"){ modalInvoice(null); return; }
+  if(act==="saveInvoice"){
+    var iid = el.getAttribute("data-id");
+    var n = val("i-num");
+    if(!n){ alert("Please enter an invoice number."); return; }
+    for(var j=0;j<DB.invoices.length;j++){
+      if(DB.invoices[j].num===n && String(DB.invoices[j].id)!==String(iid)){
+        alert("Invoice number "+n+" already exists. Use a unique number."); return;
+      }
+    }
+    var payload = {num:n, client:+val("i-client"), service:val("i-service"),
+      issue:val("i-issue"), due:val("i-due"), amount:num("i-amount"), tax:num("i-tax")};
+    if(payload.issue && payload.due && parseD(payload.due) < parseD(payload.issue)){
+      if(!confirm("The due date is before the issue date. Save anyway?")) return;
+    }
+    if(iid){
+      for(var k=0;k<DB.invoices.length;k++) if(String(DB.invoices[k].id)===String(iid)){
+        var old=DB.invoices[k].num;
+        DB.invoices[k].num=payload.num; DB.invoices[k].client=payload.client;
+        DB.invoices[k].service=payload.service; DB.invoices[k].issue=payload.issue;
+        DB.invoices[k].due=payload.due; DB.invoices[k].amount=payload.amount;
+        DB.invoices[k].tax=payload.tax;
+        if(old!==payload.num)
+          for(var m=0;m<DB.payments.length;m++) if(DB.payments[m].inv===old) DB.payments[m].inv=payload.num;
+      }
+    } else {
+      if(demoLimitReached()) return;
+      payload.id = DB.nextId.invoice++;
+      DB.invoices.push(payload);
+    }
+    save(); closeModal(); render(); return;
+  }
+  if(act==="delInvoice"){
+    var did=+el.getAttribute("data-id"), dnum=null;
+    for(var p=0;p<DB.invoices.length;p++) if(DB.invoices[p].id===did) dnum=DB.invoices[p].num;
+    var pc=0;
+    for(var q=0;q<DB.payments.length;q++) if(DB.payments[q].inv===dnum) pc++;
+    if(pc && !confirm("This invoice has "+pc+" payment(s) recorded. Delete the invoice and its payments?")) return;
+    DB.invoices = DB.invoices.filter(function(v){ return v.id!==did; });
+    DB.payments = DB.payments.filter(function(v){ return v.inv!==dnum; });
+    save(); closeModal(); render(); return;
+  }
+
+  if(act==="newPayment"){ modalPayment(null); return; }
+  if(act==="savePayment"){
+    var pi=val("p-inv"), pa=num("p-amount");
+    if(!pi){ alert("Select an invoice."); return; }
+    if(pa<=0){ alert("Enter a payment amount greater than zero."); return; }
+    var target=null;
+    for(var r=0;r<DB.invoices.length;r++) if(DB.invoices[r].num===pi) target=DB.invoices[r];
+    if(target){
+      var cc=calc(target);
+      if(pa > cc.balance + 0.005){
+        if(!confirm("That is more than the "+cur(cc.balance)+" still owing on "+pi+
+          ". Record it anyway as an overpayment?")) return;
+      }
+    }
+    DB.payments.push({id:DB.nextId.payment++, inv:pi, date:val("p-date"),
+      amount:pa, method:val("p-method"), note:val("p-note")});
+    save(); closeModal(); render(); return;
+  }
+  if(act==="delPay"){ return; }
+
+  if(act==="saveSettings"){
+    DB.settings.business = val("set-biz") || "Your Business";
+    DB.settings.currency = val("set-cur").replace(/[<>&"']/g,"") || "$";
+    var tm = parseInt(val("set-terms"),10); DB.settings.terms = isFinite(tm)&&tm>=0 ? tm : 30;
+    var ds = parseInt(val("set-soon"),10);  DB.settings.dueSoon = isFinite(ds)&&ds>=0 ? ds : 7;
+    DB.settings.prefix = val("set-prefix") || "INV-";
+    save(); render();
+    alert("Settings saved.");
+    return;
+  }
+  if(act==="clearSample"){
+    if(!confirm("Remove all sample clients, invoices and payments? Your settings are kept.")) return;
+    DB.clients=[]; DB.invoices=[]; DB.payments=[]; DB.sample=false;
+    DB.nextId={client:1,invoice:1,payment:1};
+    save(); page="clients"; render(); return;
+  }
+  if(act==="reset"){
+    if(!confirm("This erases everything and restores the sample data. Continue?")) return;
+    DB = seed(); save(); page="dash"; render(); return;
+  }
+
+  if(act==="exportInvoices"){ exportInvoices(); return; }
+  if(act==="exportPayments"){ exportPayments(); return; }
+  if(act==="exportClients"){ exportClients(); return; }
+  if(act==="exportChase"){ exportChase(); return; }
+  if(act==="exportAll"){ exportAll(); return; }
+  if(act==="print"){ window.print(); return; }
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+document.addEventListener("click", function(ev){
+  var el = ev.target.closest ? ev.target.closest("[data-go],[data-act],[data-edit-client],[data-edit-inv],[data-pay],[data-del-pay],[data-filter],[data-script],[data-copy],[data-copy-live]") : null;
+  if(!el) return;
+
+  if(el.hasAttribute("data-go")){ go(el.getAttribute("data-go")); return; }
+  if(el.hasAttribute("data-filter")){ invFilter = el.getAttribute("data-filter"); render(); return; }
+  if(el.hasAttribute("data-edit-client")){ modalClient(+el.getAttribute("data-edit-client")); return; }
+  if(el.hasAttribute("data-edit-inv")){ modalInvoice(+el.getAttribute("data-edit-inv")); return; }
+  if(el.hasAttribute("data-pay")){ modalPayment(el.getAttribute("data-pay")); return; }
+  if(el.hasAttribute("data-del-pay")){
+    var pid=+el.getAttribute("data-del-pay");
+    if(!confirm("Delete this payment? The invoice balance will go back up.")) return;
+    DB.payments = DB.payments.filter(function(p){ return p.id!==pid; });
+    save(); render(); return;
+  }
+  if(el.hasAttribute("data-script")){
+    var parts = el.getAttribute("data-script").split("|");
+    modalScript(parts[0], parts[1]); return;
+  }
+  if(el.hasAttribute("data-copy")){
+    var cp = el.getAttribute("data-copy").split("|");
+    copyText(document.getElementById("sc-"+cp[0]+"-"+cp[1]).textContent, el); return;
+  }
+  if(el.hasAttribute("data-copy-live")){
+    copyText(document.getElementById(el.getAttribute("data-copy-live")).textContent, el); return;
+  }
+  if(el.hasAttribute("data-act")){ actions(el.getAttribute("data-act"), el); return; }
+});
+
+function copyText(text, btn){
+  var done = function(){
+    var o=btn.textContent; btn.textContent="Copied";
+    setTimeout(function(){ btn.textContent=o; }, 1400);
+  };
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ legacyCopy(text, done); });
+    } else legacyCopy(text, done);
+  }catch(e){ legacyCopy(text, done); }
+}
+function legacyCopy(text, done){
+  try{
+    var ta=document.createElement("textarea");
+    ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta); done();
+  }catch(e){ alert("Copy is blocked here — select the text and copy manually."); }
+}
+
+document.getElementById("veil").addEventListener("click", function(ev){
+  if(ev.target === this) closeModal();
+});
+document.addEventListener("keydown", function(ev){
+  if(ev.key === "Escape") closeModal();
+});
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  drawNav();
+  var m = document.getElementById("main"), h="";
+  if(page==="start") h=pageStart();
+  else if(page==="dash") h=pageDash();
+  else if(page==="invoices") h=pageInvoices();
+  else if(page==="payments") h=pagePayments();
+  else if(page==="clients") h=pageClients();
+  else if(page==="chase") h=pageChase();
+  else if(page==="scripts") h=pageScripts();
+  else if(page==="reports") h=pageReports();
+  else if(page==="settings") h=pageSettings();
+  m.innerHTML = h;
+}
+
+DB = load();
+render();
+</script>
+</body>
+</html>

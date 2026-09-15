@@ -186,7 +186,7 @@ tbody tr:last-child td{border-bottom:0}
 </style>
 </head>
 <body>
-<div class="demo-banner" id="demoBanner">DEMO — example data, log up to 50 invoices and see whether it thinks the way you do. Nothing is saved permanently and it can reset any time. <a href="https://www.etsy.com/shop/LedgerLoopStudio" target="_blank" rel="noopener">Buy the full version</a> for your own unlimited, permanent copy.<button class="x" onclick="document.getElementById('demoBanner').style.display='none'" aria-label="Dismiss">✕</button></div>
+<div class="demo-banner" id="demoBanner">DEMO — example data, add up to 15 of your own invoices and see whether it thinks the way you do. Nothing is saved permanently and it can reset any time. <a href="https://www.etsy.com/shop/LedgerLoopStudio" target="_blank" rel="noopener">Buy the full version</a> for your own unlimited, permanent copy.<button class="x" onclick="document.getElementById('demoBanner').style.display='none'" aria-label="Dismiss">✕</button></div>
 <div class="app">
   <aside class="side">
     <div class="brand"><b id="bizName">Your Business</b><span>Invoice Tracker</span></div>
@@ -206,7 +206,7 @@ tbody tr:last-child td{border-bottom:0}
 var KEY = "invoiceTrackerPro_v1";
 var DB = null;
 /* ---- demo-only limit: this block exists only in the public try-it demo, never in the sold product ---- */
-var DEMO_MODE = true, DEMO_INV_LIMIT = 50;
+var DEMO_MODE = true, DEMO_INV_LIMIT = 32; /* 17 seeded + 15 room to try adding your own */
 function demoLimitReached(){
   if(!DEMO_MODE) return false;
   if(!DB || !DB.invoices || DB.invoices.length < DEMO_INV_LIMIT) return false;

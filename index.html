@@ -183,10 +183,11 @@ tbody tr:last-child td{border-bottom:0}
   .note{border:1px solid #ccc}
   a[href]:after{content:""}
 }
+.buildstamp{max-width:1180px;margin:0 auto;padding:4px 22px 30px;color:#8A9AA5;font-size:11px;letter-spacing:.04em;text-align:right}
 </style>
 </head>
 <body>
-<div class="demo-banner" id="demoBanner">DEMO — example data, add up to 15 of your own invoices and see whether it thinks the way you do. Nothing is saved permanently and it can reset any time. <a href="https://www.etsy.com/shop/LedgerLoopStudio" target="_blank" rel="noopener">Buy the full version</a> for your own unlimited, permanent copy.<button class="x" onclick="document.getElementById('demoBanner').style.display='none'" aria-label="Dismiss">✕</button></div>
+<div class="demo-banner" id="demoBanner">DEMO â example data, add up to 15 of your own invoices and see whether it thinks the way you do. Nothing is saved permanently and it can reset any time. <a href="https://www.etsy.com/shop/LedgerLoopStudio" target="_blank" rel="noopener">Buy the full version</a> for your own unlimited, permanent copy.<button class="x" onclick="document.getElementById('demoBanner').style.display='none'" aria-label="Dismiss">â</button></div>
 <div class="app">
   <aside class="side">
     <div class="brand"><b id="bizName">Your Business</b><span>Invoice Tracker</span></div>
@@ -210,7 +211,7 @@ var DEMO_MODE = true, DEMO_INV_LIMIT = 32; /* 17 seeded + 15 room to try adding 
 function demoLimitReached(){
   if(!DEMO_MODE) return false;
   if(!DB || !DB.invoices || DB.invoices.length < DEMO_INV_LIMIT) return false;
-  alert("You've reached the "+DEMO_INV_LIMIT+"-invoice demo limit.\n\nThis is just a preview — buy the full version for unlimited invoices, all features unlocked, and your own permanent copy.");
+  alert("You've reached the "+DEMO_INV_LIMIT+"-invoice demo limit.\n\nThis is just a preview â buy the full version for unlimited invoices, all features unlocked, and your own permanent copy.");
   return true;
 }
 
@@ -256,7 +257,7 @@ function seed(){
       {id:9,num:"INV-1009",client:1,service:"Social templates",issue:s(-30),due:s(0),amount:890,tax:0},
       {id:10,num:"INV-1010",client:4,service:"Brand refresh",issue:s(-24),due:s(6),amount:3600,tax:180},
       {id:11,num:"INV-1011",client:5,service:"Packaging design",issue:s(-17),due:s(13),amount:2250,tax:0},
-      {id:12,num:"INV-1012",client:2,service:"Retainer — monthly",issue:s(-10),due:s(20),amount:2000,tax:0},
+      {id:12,num:"INV-1012",client:2,service:"Retainer â monthly",issue:s(-10),due:s(20),amount:2000,tax:0},
       {id:13,num:"INV-1013",client:3,service:"Workshop facilitation",issue:s(-6),due:s(24),amount:1500,tax:75},
       {id:14,num:"INV-1014",client:1,service:"Illustration set",issue:s(-3),due:s(27),amount:1400,tax:0},
       {id:15,num:"INV-1015",client:4,service:"Presentation system",issue:s(-1),due:s(45),amount:2800,tax:140},
@@ -286,7 +287,7 @@ function load(){
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(DB)); }
-  catch(e){ /* private mode / storage blocked — app still works in-session */ }
+  catch(e){ /* private mode / storage blocked â app still works in-session */ }
 }
 
 /* ============================================================
@@ -313,7 +314,7 @@ function pct(a,b){ return (b>0) ? Math.round(a/b*100) : 0; }
 
 function clientName(id){
   for(var i=0;i<DB.clients.length;i++) if(DB.clients[i].id===id) return DB.clients[i].name;
-  return "—";
+  return "â";
 }
 function clientById(id){
   for(var i=0;i<DB.clients.length;i++) if(DB.clients[i].id===id) return DB.clients[i];
@@ -334,7 +335,7 @@ function lastPayDate(num){
   return best;
 }
 
-/* the single derivation used everywhere — one source of truth */
+/* the single derivation used everywhere â one source of truth */
 function calc(inv){
   var t = today();
   var amount = (+inv.amount)||0, tax = (+inv.tax)||0;
@@ -342,7 +343,7 @@ function calc(inv){
   var paid = paidFor(inv.num);
   var balance = Math.round((total - paid)*100)/100;
   var due = parseD(inv.due);
-  var status, days = 0, bucket = "—";
+  var status, days = 0, bucket = "â";
 
   if(!due && paid <= 0.005){ status = "Draft"; }
   else if(total <= 0.005 && paid <= 0.005){ status = "Draft"; }
@@ -351,7 +352,7 @@ function calc(inv){
   else if(due < t){
     status = "Overdue";
     days = daysBetween(due, t);
-    bucket = days<=30 ? "1–30" : days<=60 ? "31–60" : days<=90 ? "61–90" : "90+";
+    bucket = days<=30 ? "1â30" : days<=60 ? "31â60" : days<=90 ? "61â90" : "90+";
   }
   else if(paid > 0){ status = "Partially Paid"; bucket = "Current"; }
   else if(daysBetween(t, due) <= (+DB.settings.dueSoon||7)){ status = "Due Soon"; bucket = "Current"; }
@@ -380,15 +381,15 @@ function pillFor(status){
    NAVIGATION
    ============================================================ */
 var PAGES = [
-  {id:"start",   ico:"◆", name:"Start Here"},
-  {id:"dash",    ico:"▦", name:"Dashboard"},
-  {id:"invoices",ico:"▤", name:"Invoices"},
-  {id:"payments",ico:"↓", name:"Payments"},
-  {id:"clients", ico:"◎", name:"Clients"},
+  {id:"start",   ico:"â", name:"Start Here"},
+  {id:"dash",    ico:"â¦", name:"Dashboard"},
+  {id:"invoices",ico:"â¤", name:"Invoices"},
+  {id:"payments",ico:"â", name:"Payments"},
+  {id:"clients", ico:"â", name:"Clients"},
   {id:"chase",   ico:"!", name:"Chase List"},
-  {id:"scripts", ico:"✉", name:"Follow-Up"},
-  {id:"reports", ico:"▧", name:"Reports"},
-  {id:"settings",ico:"⚙", name:"Settings"}
+  {id:"scripts", ico:"â", name:"Follow-Up"},
+  {id:"reports", ico:"â§", name:"Reports"},
+  {id:"settings",ico:"â", name:"Settings"}
 ];
 var page = "dash";
 
@@ -418,18 +419,18 @@ function go(id){ page=id; render(); window.scrollTo(0,0); }
 function pageStart(){
   var s = DB.sample ? '<div class="note warn"><b>Sample data is loaded.</b> Everything you see is an '+
     'example so you can explore how the system works. When you are ready, go to Settings and '+
-    'choose <b>Clear sample data</b> — that leaves you a clean file with your own settings intact.</div>' : "";
+    'choose <b>Clear sample data</b> â that leaves you a clean file with your own settings intact.</div>' : "";
   return '<div class="head"><div><h1>Start Here</h1>'+
     '<p>Five steps. Around five minutes. Then the file runs itself.</p></div></div>'+ s +
     '<div class="panel"><h2>Set up in 5 steps</h2><div class="pad"><ol class="steps">'+
       '<li><b>Enter your settings</b><span>Business name, currency symbol, and your standard payment '+
         'terms (e.g. 30 days). Due dates fill in automatically from these.</span></li>'+
       '<li><b>Add your clients</b><span>Name, contact person, email and phone. You only do this once '+
-        'per client — invoices then link to them.</span></li>'+
+        'per client â invoices then link to them.</span></li>'+
       '<li><b>Add your invoices</b><span>Invoice number, client, amount. The due date, total, balance '+
         'and status all calculate themselves.</span></li>'+
       '<li><b>Record payments as they arrive</b><span>Log the amount against the invoice number. '+
-        'Partial payments are fully supported — the invoice updates on its own.</span></li>'+
+        'Partial payments are fully supported â the invoice updates on its own.</span></li>'+
       '<li><b>Work the Chase List</b><span>Open it any day. It shows who is overdue, worst first, '+
         'with the exact wording to send them from the Follow-Up tab.</span></li>'+
     '</ol></div></div>'+
@@ -448,7 +449,7 @@ function pageStart(){
         'Nothing is uploaded anywhere, and there is no account to create.</p>'+
         '<p style="margin-bottom:9px">Use <b>Export CSV</b> on any tab to keep a backup or open your '+
         'records in Excel or Google Sheets.</p>'+
-        '<p>Statuses are never typed by hand — they are worked out from your dates and payments, so '+
+        '<p>Statuses are never typed by hand â they are worked out from your dates and payments, so '+
         'they can never fall out of date.</p>'+
       '</div></div>'+
     '</div>';
@@ -457,7 +458,7 @@ function pageStart(){
 function pageDash(){
   var all = allCalc(), t = today();
   var totInv=0, totPaid=0, outstanding=0, overdue=0, dueWeek=0, paidCount=0, nOverdue=0;
-  var buckets = {"Current":{n:0,v:0},"1–30":{n:0,v:0},"31–60":{n:0,v:0},"61–90":{n:0,v:0},"90+":{n:0,v:0}};
+  var buckets = {"Current":{n:0,v:0},"1â30":{n:0,v:0},"31â60":{n:0,v:0},"61â90":{n:0,v:0},"90+":{n:0,v:0}};
   var f30=0,f60=0,f90=0;
 
   for(var i=0;i<all.length;i++){
@@ -494,17 +495,17 @@ function pageDash(){
   h += '<div class="panel"><h2>Cash coming in <small>Based on unpaid invoices and their due dates</small></h2>'+
     '<div class="pad"><div class="kpis" style="margin:0">'+
       kpi("Next 30 days", cur0(f30), "if paid on time","good")+
-      kpi("31–60 days", cur0(f60), "if paid on time","")+
-      kpi("61–90 days", cur0(f90), "if paid on time","")+
-      kpi("Already overdue", cur0(overdue), "at risk — chase now","alert")+
+      kpi("31â60 days", cur0(f60), "if paid on time","")+
+      kpi("61â90 days", cur0(f90), "if paid on time","")+
+      kpi("Already overdue", cur0(overdue), "at risk â chase now","alert")+
     '</div></div></div>';
 
   /* aging + monthly */
   var maxB = 0;
   for(var k in buckets) if(buckets[k].v>maxB) maxB=buckets[k].v;
   var ag = '<div class="bars">';
-  var order=["Current","1–30","31–60","61–90","90+"];
-  var cls={"Current":"","1–30":"b","31–60":"b","61–90":"a","90+":"a"};
+  var order=["Current","1â30","31â60","61â90","90+"];
+  var cls={"Current":"","1â30":"b","31â60":"b","61â90":"a","90+":"a"};
   for(var j=0;j<order.length;j++){
     var b=buckets[order[j]];
     var w = maxB>0 ? Math.round(b.v/maxB*100) : 0;
@@ -527,7 +528,7 @@ function pageDash(){
     if(top[q].outstanding<=0.005) continue;
     topRows += '<tr><td>'+esc(top[q].name)+'</td>'+
       '<td class="num">'+cur0(top[q].outstanding)+'</td>'+
-      '<td class="num">'+(top[q].overdue>0.005?'<span style="color:var(--alert)">'+cur0(top[q].overdue)+'</span>':'<span class="mut">—</span>')+'</td></tr>';
+      '<td class="num">'+(top[q].overdue>0.005?'<span style="color:var(--alert)">'+cur0(top[q].overdue)+'</span>':'<span class="mut">â</span>')+'</td></tr>';
   }
   if(!topRows) topRows = '<tr><td colspan="3" class="mut">Nothing outstanding. Every invoice is settled.</td></tr>';
 
@@ -648,13 +649,13 @@ function pageClients(){
     var c=cs[i];
     rows += '<tr>'+
       '<td><b>'+esc(c.name)+'</b>'+(c.contact?'<div class="mut" style="font-size:12.5px">'+esc(c.contact)+'</div>':'')+'</td>'+
-      '<td class="mut" style="font-size:12.5px">'+esc(c.email||"—")+(c.phone?'<div>'+esc(c.phone)+'</div>':'')+'</td>'+
+      '<td class="mut" style="font-size:12.5px">'+esc(c.email||"â")+(c.phone?'<div>'+esc(c.phone)+'</div>':'')+'</td>'+
       '<td class="num">'+c.count+'</td>'+
       '<td class="num">'+cur0(c.billed)+'</td>'+
       '<td class="num">'+cur0(c.paid)+'</td>'+
-      '<td class="num">'+(c.outstanding>0.005?cur0(c.outstanding):'<span class="mut">—</span>')+'</td>'+
-      '<td class="num">'+(c.overdue>0.005?'<span style="color:var(--alert);font-weight:650">'+cur0(c.overdue)+'</span>':'<span class="mut">—</span>')+'</td>'+
-      '<td class="num">'+(c.avgDays!==null?c.avgDays:'<span class="mut">—</span>')+'</td>'+
+      '<td class="num">'+(c.outstanding>0.005?cur0(c.outstanding):'<span class="mut">â</span>')+'</td>'+
+      '<td class="num">'+(c.overdue>0.005?'<span style="color:var(--alert);font-weight:650">'+cur0(c.overdue)+'</span>':'<span class="mut">â</span>')+'</td>'+
+      '<td class="num">'+(c.avgDays!==null?c.avgDays:'<span class="mut">â</span>')+'</td>'+
       '<td>'+reliabilityPill(c.reliability)+'</td>'+
       '<td class="num"><button class="btn ghost sm" data-edit-client="'+c.id+'">Edit</button></td>'+
     '</tr>';
@@ -662,10 +663,10 @@ function pageClients(){
   if(!rows) rows='<tr><td colspan="10"><div class="empty">No clients yet. Add your first client to get started.</div></td></tr>';
 
   return '<div class="head"><div><h1>Clients</h1>'+
-    '<p>Not just a contact list — every client scored on how they actually pay you.</p></div>'+
+    '<p>Not just a contact list â every client scored on how they actually pay you.</p></div>'+
     '<div class="row"><button class="btn ghost sm" data-act="exportClients">Export CSV</button>'+
     '<button class="btn" data-act="newClient">+ Add client</button></div></div>'+
-    '<div class="note">“Avg days” is measured from invoice date to the date the invoice was fully settled. '+
+    '<div class="note">âAvg daysâ is measured from invoice date to the date the invoice was fully settled. '+
     'Reliability compares that against your standard terms of '+((+DB.settings.terms)||30)+' days.</div>'+
     '<div class="panel"><div class="tw"><table><thead><tr>'+
       '<th>Client</th><th>Contact</th><th class="num">Invoices</th><th class="num">Billed</th>'+
@@ -692,13 +693,13 @@ function pageInvoices(){
     rows += '<tr>'+
       '<td><b>'+esc(inv.num)+'</b></td>'+
       '<td>'+esc(clientName(inv.client))+'<div class="mut" style="font-size:12.5px">'+esc(inv.service||"")+'</div></td>'+
-      '<td class="mut">'+esc(inv.issue||"—")+'</td>'+
-      '<td class="mut">'+esc(inv.due||"—")+'</td>'+
+      '<td class="mut">'+esc(inv.issue||"â")+'</td>'+
+      '<td class="mut">'+esc(inv.due||"â")+'</td>'+
       '<td class="num">'+cur(c.total)+'</td>'+
       '<td class="num">'+cur(c.paid)+'</td>'+
       '<td class="num"><b>'+cur(c.balance)+'</b>'+(c.overpaid?'<div style="font-size:11.5px;color:var(--amber)">overpaid</div>':'')+'</td>'+
       '<td>'+pillFor(c.status)+'</td>'+
-      '<td class="num">'+(c.days>0?'<span style="color:var(--alert);font-weight:650">'+c.days+'</span>':'<span class="mut">—</span>')+'</td>'+
+      '<td class="num">'+(c.days>0?'<span style="color:var(--alert);font-weight:650">'+c.days+'</span>':'<span class="mut">â</span>')+'</td>'+
       '<td class="num"><button class="btn ghost sm" data-pay="'+esc(inv.num)+'">Payment</button> '+
         '<button class="btn ghost sm" data-edit-inv="'+inv.id+'">Edit</button></td>'+
     '</tr>';
@@ -708,7 +709,7 @@ function pageInvoices(){
   var f = function(k,l){ return '<button class="btn '+(invFilter===k?"":"ghost")+' sm" data-filter="'+k+'">'+l+'</button>'; };
 
   return '<div class="head"><div><h1>Invoices</h1>'+
-    '<p>Status, balance and days overdue calculate themselves — nothing to update by hand.</p></div>'+
+    '<p>Status, balance and days overdue calculate themselves â nothing to update by hand.</p></div>'+
     '<div class="row"><button class="btn ghost sm" data-act="exportInvoices">Export CSV</button>'+
     '<button class="btn" data-act="newInvoice">+ Add invoice</button></div></div>'+
     '<div class="row" style="margin-bottom:14px">'+f("all","All")+f("unpaid","Unpaid")+
@@ -730,10 +731,10 @@ function pagePayments(){
     var known=false;
     for(var j=0;j<DB.invoices.length;j++) if(DB.invoices[j].num===p.inv){ known=true; break; }
     rows += '<tr>'+
-      '<td class="mut">'+esc(p.date||"—")+'</td>'+
+      '<td class="mut">'+esc(p.date||"â")+'</td>'+
       '<td><b>'+esc(p.inv)+'</b>'+(known?'':' <span class="pill p-over">unknown invoice</span>')+'</td>'+
       '<td class="num">'+cur(+p.amount||0)+'</td>'+
-      '<td class="mut">'+esc(p.method||"—")+'</td>'+
+      '<td class="mut">'+esc(p.method||"â")+'</td>'+
       '<td class="mut">'+esc(p.note||"")+'</td>'+
       '<td class="num"><button class="btn danger sm" data-del-pay="'+p.id+'">Delete</button></td>'+
     '</tr>';
@@ -741,7 +742,7 @@ function pagePayments(){
   if(!rows) rows='<tr><td colspan="6"><div class="empty">No payments recorded yet.</div></td></tr>';
 
   return '<div class="head"><div><h1>Payments</h1>'+
-    '<p>Log money as it arrives. Partial payments are fully supported — invoices update themselves.</p></div>'+
+    '<p>Log money as it arrives. Partial payments are fully supported â invoices update themselves.</p></div>'+
     '<div class="row"><button class="btn ghost sm" data-act="exportPayments">Export CSV</button>'+
     '<button class="btn" data-act="newPayment">+ Record payment</button></div></div>'+
     '<div class="panel"><div class="tw"><table><thead><tr>'+
@@ -779,12 +780,12 @@ function pageChase(){
   }
 
   var head = '<div class="head"><div><h1>Chase List</h1>'+
-    '<p>Everyone who is late, worst first — with the right action for how late they are.</p></div>'+
+    '<p>Everyone who is late, worst first â with the right action for how late they are.</p></div>'+
     '<div class="row"><button class="btn ghost sm" data-act="exportChase">Export CSV</button></div></div>';
 
   if(!rows){
     return head + '<div class="panel"><div class="empty">'+
-      '<div style="font-size:30px;margin-bottom:10px;color:var(--accent)">✓</div>'+
+      '<div style="font-size:30px;margin-bottom:10px;color:var(--accent)">â</div>'+
       '<b style="color:var(--ink);font-size:16px">Nothing is overdue.</b>'+
       '<div style="margin-top:6px">Every invoice is either paid or still within its terms.</div>'+
       '</div></div>';
@@ -804,18 +805,18 @@ function pageChase(){
 
 /* ---------- scripts ---------- */
 var SCRIPTS = {
-  nudge:{ title:"Gentle nudge", when:"1–30 days overdue",
-    email:"Subject: Invoice {INV} — quick check\n\nHi {NAME},\n\nHope things are going well.\n\nI'm just following up on invoice {INV} for {AMOUNT}, which was due on {DUE}. It may well have been missed in the shuffle — it happens.\n\nIf it's already scheduled, no action needed and thank you. If not, could you let me know when I can expect it?\n\nHappy to resend the invoice if that helps.\n\nBest,\n{BUSINESS}",
-    sms:"Hi {NAME} — quick nudge that invoice {INV} ({AMOUNT}) was due {DUE}. Let me know if you need it resent. Thanks! — {BUSINESS}" },
-  firm:{ title:"Firm reminder", when:"31–60 days overdue",
-    email:"Subject: Overdue: invoice {INV} — {DAYS} days past due\n\nHi {NAME},\n\nInvoice {INV} for {AMOUNT} is now {DAYS} days past its due date of {DUE}, and I haven't yet received payment or an update.\n\nCould you confirm the payment date this week? If there's a problem with the invoice or something is holding it up internally, tell me and I'll help sort it.\n\nI'd like to get this closed without it dragging on further.\n\nBest,\n{BUSINESS}",
-    sms:"Hi {NAME} — invoice {INV} ({AMOUNT}) is now {DAYS} days overdue. Can you confirm a payment date this week? — {BUSINESS}" },
-  formal:{ title:"Formal notice", when:"61–90 days overdue",
-    email:"Subject: Formal notice — invoice {INV}, {DAYS} days overdue\n\n{NAME},\n\nInvoice {INV} for {AMOUNT} was due on {DUE} and is now {DAYS} days overdue. Previous reminders have gone unanswered.\n\nPlease arrange payment within 7 days of this message.\n\nIf there is a dispute or a reason payment cannot be made, I need to hear it in writing within the same 7 days so it can be resolved.\n\nWithout payment or a written response, I will pause any further work and escalate collection of this balance.\n\nRegards,\n{BUSINESS}",
-    sms:"{NAME} — formal notice: invoice {INV} ({AMOUNT}) is {DAYS} days overdue. Payment or a written response is needed within 7 days. — {BUSINESS}" },
+  nudge:{ title:"Gentle nudge", when:"1â30 days overdue",
+    email:"Subject: Invoice {INV} â quick check\n\nHi {NAME},\n\nHope things are going well.\n\nI'm just following up on invoice {INV} for {AMOUNT}, which was due on {DUE}. It may well have been missed in the shuffle â it happens.\n\nIf it's already scheduled, no action needed and thank you. If not, could you let me know when I can expect it?\n\nHappy to resend the invoice if that helps.\n\nBest,\n{BUSINESS}",
+    sms:"Hi {NAME} â quick nudge that invoice {INV} ({AMOUNT}) was due {DUE}. Let me know if you need it resent. Thanks! â {BUSINESS}" },
+  firm:{ title:"Firm reminder", when:"31â60 days overdue",
+    email:"Subject: Overdue: invoice {INV} â {DAYS} days past due\n\nHi {NAME},\n\nInvoice {INV} for {AMOUNT} is now {DAYS} days past its due date of {DUE}, and I haven't yet received payment or an update.\n\nCould you confirm the payment date this week? If there's a problem with the invoice or something is holding it up internally, tell me and I'll help sort it.\n\nI'd like to get this closed without it dragging on further.\n\nBest,\n{BUSINESS}",
+    sms:"Hi {NAME} â invoice {INV} ({AMOUNT}) is now {DAYS} days overdue. Can you confirm a payment date this week? â {BUSINESS}" },
+  formal:{ title:"Formal notice", when:"61â90 days overdue",
+    email:"Subject: Formal notice â invoice {INV}, {DAYS} days overdue\n\n{NAME},\n\nInvoice {INV} for {AMOUNT} was due on {DUE} and is now {DAYS} days overdue. Previous reminders have gone unanswered.\n\nPlease arrange payment within 7 days of this message.\n\nIf there is a dispute or a reason payment cannot be made, I need to hear it in writing within the same 7 days so it can be resolved.\n\nWithout payment or a written response, I will pause any further work and escalate collection of this balance.\n\nRegards,\n{BUSINESS}",
+    sms:"{NAME} â formal notice: invoice {INV} ({AMOUNT}) is {DAYS} days overdue. Payment or a written response is needed within 7 days. â {BUSINESS}" },
   final:{ title:"Final demand", when:"90+ days overdue",
-    email:"Subject: Final demand before escalation — invoice {INV}\n\n{NAME},\n\nInvoice {INV} for {AMOUNT}, due {DUE}, is now {DAYS} days overdue. Repeated reminders have received no payment and no response.\n\nThis is a final request for payment in full within 7 days of the date of this message.\n\nIf the balance is not settled or a written repayment arrangement agreed within that period, I will proceed with formal recovery, which may include a collections agency or a claim through the small claims process. Any costs and statutory interest arising will be added to the balance owed.\n\nI would much rather settle this directly. The account can be closed today by paying {AMOUNT}.\n\nRegards,\n{BUSINESS}",
-    sms:"{NAME} — final demand: invoice {INV} ({AMOUNT}), {DAYS} days overdue. Full payment or a written arrangement needed within 7 days before formal recovery. — {BUSINESS}" }
+    email:"Subject: Final demand before escalation â invoice {INV}\n\n{NAME},\n\nInvoice {INV} for {AMOUNT}, due {DUE}, is now {DAYS} days overdue. Repeated reminders have received no payment and no response.\n\nThis is a final request for payment in full within 7 days of the date of this message.\n\nIf the balance is not settled or a written repayment arrangement agreed within that period, I will proceed with formal recovery, which may include a collections agency or a claim through the small claims process. Any costs and statutory interest arising will be added to the balance owed.\n\nI would much rather settle this directly. The account can be closed today by paying {AMOUNT}.\n\nRegards,\n{BUSINESS}",
+    sms:"{NAME} â final demand: invoice {INV} ({AMOUNT}), {DAYS} days overdue. Full payment or a written arrangement needed within 7 days before formal recovery. â {BUSINESS}" }
 };
 
 function fill(tpl, ctx){
@@ -923,7 +924,7 @@ function pageSettings(){
         '<div class="field"><label>Default payment terms (days)</label>'+
           '<input id="set-terms" type="number" min="0" max="365" value="'+(+s.terms||30)+'">'+
           '<div class="hint">Due dates are calculated from the issue date using this.</div></div>'+
-        '<div class="field"><label>“Due soon” window (days)</label>'+
+        '<div class="field"><label>âDue soonâ window (days)</label>'+
           '<input id="set-soon" type="number" min="0" max="90" value="'+(+s.dueSoon||7)+'">'+
           '<div class="hint">Invoices due within this many days show as Due Soon.</div></div>'+
       '</div>'+
@@ -1022,7 +1023,7 @@ function modalPayment(num){
     var o=all[i];
     if(o.c.balance<=0.005 && o.inv.num!==num) continue;
     opts += '<option value="'+esc(o.inv.num)+'"'+(num===o.inv.num?" selected":"")+'>'+
-      esc(o.inv.num)+' — '+esc(clientName(o.inv.client))+' ('+cur(o.c.balance)+' owing)</option>';
+      esc(o.inv.num)+' â '+esc(clientName(o.inv.client))+' ('+cur(o.c.balance)+' owing)</option>';
   }
   if(!opts) opts='<option value="">No unpaid invoices</option>';
   openModal('<h3>Record payment</h3><div class="body">'+
@@ -1037,7 +1038,7 @@ function modalPayment(num){
         '<option>Cash</option><option>Cheque</option><option>Other</option></select></div>'+
       '<div class="field"><label>Note (optional)</label><input id="p-note" placeholder="Part payment"></div>'+
     '</div>'+
-    '<div class="hint">Partial payments are fine — record as many as you need against one invoice.</div>'+
+    '<div class="hint">Partial payments are fine â record as many as you need against one invoice.</div>'+
     '</div><div class="foot"><button class="btn ghost" data-act="close">Cancel</button>'+
     '<button class="btn" data-act="savePayment">Save payment</button></div>');
 }
@@ -1048,9 +1049,9 @@ function modalScript(key, num){
   if(!inv) return;
   var c=calc(inv), cl=clientById(inv.client), s=SCRIPTS[key];
   var ctx={ NAME: (cl&&cl.contact) ? cl.contact : clientName(inv.client),
-            INV: inv.num, AMOUNT: cur(c.balance), DUE: inv.due||"—",
+            INV: inv.num, AMOUNT: cur(c.balance), DUE: inv.due||"â",
             DAYS: c.days, BUSINESS: DB.settings.business||"" };
-  openModal('<h3>'+esc(s.title)+' — '+esc(inv.num)+'</h3><div class="body">'+
+  openModal('<h3>'+esc(s.title)+' â '+esc(inv.num)+'</h3><div class="body">'+
     '<div class="script"><h4>Email <button class="btn ghost sm" data-copy-live="live-email">Copy</button></h4>'+
       '<pre id="live-email">'+esc(fill(s.email,ctx))+'</pre></div>'+
     '<div class="script"><h4>Text message <button class="btn ghost sm" data-copy-live="live-sms">Copy</button></h4>'+
@@ -1073,7 +1074,7 @@ function toCSV(rows){
 }
 function download(name, text){
   try{
-    var blob = new Blob(["﻿"+text], {type:"text/csv;charset=utf-8;"});
+    var blob = new Blob(["ï»¿"+text], {type:"text/csv;charset=utf-8;"});
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href=url; a.download=name; document.body.appendChild(a); a.click();
@@ -1300,7 +1301,7 @@ function legacyCopy(text, done){
     ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
     document.body.appendChild(ta); ta.select();
     document.execCommand("copy"); document.body.removeChild(ta); done();
-  }catch(e){ alert("Copy is blocked here — select the text and copy manually."); }
+  }catch(e){ alert("Copy is blocked here â select the text and copy manually."); }
 }
 
 document.getElementById("veil").addEventListener("click", function(ev){
@@ -1331,5 +1332,6 @@ function render(){
 DB = load();
 render();
 </script>
+<div class="buildstamp noprint">Invoice Tracker &amp; Chase Manager &middot; build 2026-09-18 &middot; LedgerLoopStudio</div>
 </body>
 </html>
